@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flower & Apparel | Da Candy Shop</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="smoke-layer" aria-hidden="true"></div>
+    <header class="site-header">
+      <a class="brand" href="index.html"><span class="brand-mark">DCS</span><span>Da Candy Shop</span></a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a href="#flower">Flower</a>
+        <a href="#apparel">Apparel</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </header>
+
+    <main>
+      <section id="flower" class="section shop-layout">
+        <div class="section-heading wide">
+          <p class="eyebrow">Flower Counter</p>
+          <h1>Pick your favorite flavor for pickup</h1>
+        </div>
+        <aside class="filter-panel glass">
+          <label>Search <input id="searchInput" type="search" placeholder="Search strains" /></label>
+          <label>Potency <select id="potencyFilter"><option value="">All</option><option>High</option><option>Medium</option></select></label>
+          <label>THC % <input id="thcFilter" type="number" min="0" placeholder="Min THC" /></label>
+          <label>CBD % <input id="cbdFilter" type="number" min="0" placeholder="Min CBD" /></label>
+          <label>Type <select id="typeFilter"><option value="">All</option><option>Indica</option><option>Sativa</option><option>Hybrid</option></select></label>
+          <label>Price Range <input id="priceFilter" type="range" min="20" max="70" value="70" /><span id="priceLabel">$70 max</span></label>
+          <label>Sort By <select id="sortBy"><option value="popular">Most Popular</option><option value="potency">Highest Potency</option><option value="low">Lowest Price</option><option value="high">Highest Price</option></select></label>
+        </aside>
+        <div id="strainGrid" class="product-grid strain-grid"></div>
+      </section>
+
+      <section id="checkout" class="section checkout-section">
+        <div class="section-heading">
+          <p class="eyebrow">Checkout</p>
+          <h2>Bag It Up</h2>
+        </div>
+        <form id="checkoutForm" class="checkout-grid glass">
+          <div>
+            <h3>Customer Information</h3>
+            <label>First Name <input name="firstName" required /></label>
+            <label>Last Name <input name="lastName" required /></label>
+            <label>Phone Number <input name="phone" required pattern="[0-9+()\\-\\s]{7,}" /></label>
+          </div>
+          <div>
+            <h3>Pickup Scheduling</h3>
+            <label>Pickup Date <input name="pickupDate" type="date" required /></label>
+            <label>Pickup Time <input name="pickupTime" type="time" required /></label>
+            <p class="payment-due">Payment Due At Pickup</p>
+          </div>
+          <div class="order-summary">
+            <h3>Order Details</h3>
+            <div id="cartItems"></div>
+            <div class="total-row"><span>Total Amount</span><strong id="cartTotal">$0</strong></div>
+            <button class="btn primary full" type="submit">Place Order</button>
+          </div>
+        </form>
+        <div id="confirmation" class="confirmation glass hidden"></div>
+      </section>
+
+      <section id="apparel" class="section">
+        <div class="section-heading">
+          <p class="eyebrow">Candy Wrapper</p>
+          <h2>Fresh apparel with a candy-shop pop</h2>
+        </div>
+        <div class="category-tabs">
+          <button>T-Shirts</button><button>Hoodies</button><button>Hats</button><button>Jackets</button><button>Beanies</button>
+        </div>
+        <div id="apparelGrid" class="product-grid"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand"><span class="brand-mark">DCS</span><span>Da Candy Shop</span></div>
+      <div class="footer-links"><a href="index.html">Home</a><a href="#flower">Flower</a><a href="contact.html">Contact</a></div>
+      <p>&copy; 2026 Da Candy Shop. All rights reserved.</p>
+    </footer>
+
+    <script type="module">
+      const strains = [
+        ["Blue Dream","Hybrid","High",24,1,"Berry-forward hybrid with a smooth, balanced profile.",35,98],
+        ["Runtz","Hybrid","High",27,1,"Sweet candy notes with colorful bag appeal.",42,100],
+        ["Gelato","Hybrid","High",25,1,"Creamy dessert aroma and relaxing finish.",40,92],
+        ["Wedding Cake","Indica","High",28,1,"Dense, rich flower with frosting-like sweetness.",45,95],
+        ["OG Kush","Indica","High",23,1,"Classic earthy fuel profile with lasting body notes.",38,88],
+        ["Sour Diesel","Sativa","High",22,0,"Bright, pungent sativa with energizing character.",36,84],
+        ["White Widow","Hybrid","Medium",19,1,"Old-school balanced strain with herbal bite.",32,76],
+        ["Purple Haze","Sativa","Medium",20,1,"Floral, grape-leaning sativa with smooth lift.",34,81],
+        ["Pineapple Express","Hybrid","Medium",21,1,"Tropical aroma with easygoing daytime appeal.",35,86],
+        ["Northern Lights","Indica","High",24,1,"Calming classic indica with pine and spice.",37,90],
+        ["Granddaddy Purple","Indica","High",25,1,"Purple flower with grape notes and deep relaxation.",39,91],
+        ["Gorilla Glue","Hybrid","High",29,1,"Resin-heavy hybrid with powerful potency.",46,97]
+      ].map((s, i) => ({ id: i + 1, name: s[0], type: s[1], potency: s[2], thc: s[3], cbd: s[4], description: s[5], price: s[6], popularity: s[7], image: "" }));
+      const apparel = ["DCS Sugar Rush Tee","Black Cherry Hoodie","Cherry Leaf Hat","Cream Shop Jacket","Candy Knit Beanie"].map((name, i) => ({ name, price: [28,68,32,95,24][i], section: ["New Arrivals","Featured Apparel","Best Sellers","Featured Apparel","Best Sellers"][i] }));
+      const cart = JSON.parse(localStorage.getItem("dcsCart") || "[]");
+      const money = value => `$${Number(value).toFixed(2)}`;
+      const saveCart = () => localStorage.setItem("dcsCart", JSON.stringify(cart));
+      function renderStrains() {
+        const q = searchInput.value.toLowerCase();
+        const maxPrice = Number(priceFilter.value);
+        priceLabel.textContent = `$${maxPrice} max`;
+        let list = strains.filter(s => s.name.toLowerCase().includes(q) && (!potencyFilter.value || s.potency === potencyFilter.value) && (!typeFilter.value || s.type === typeFilter.value) && s.thc >= Number(thcFilter.value || 0) && s.cbd >= Number(cbdFilter.value || 0) && s.price <= maxPrice);
+        list.sort((a,b) => sortBy.value === "potency" ? b.thc - a.thc : sortBy.value === "low" ? a.price - b.price : sortBy.value === "high" ? b.price - a.price : b.popularity - a.popularity);
+        strainGrid.innerHTML = list.map(s => `<article class="product-card strain-card"><div class="product-art ${s.type.toLowerCase()}"></div><div class="card-top"><span class="badge">${s.type}</span><span>${s.potency}</span></div><h3>${s.name}</h3><p>${s.description}</p><div class="specs"><span>THC ${s.thc}%</span><span>CBD ${s.cbd}%</span><span>${money(s.price)}</span></div><label>Qty <input class="qty" id="qty-${s.id}" type="number" min="1" max="20" value="1" /></label><button class="btn small" data-id="${s.id}">Order Now</button></article>`).join("");
+      }
+      function renderCart() {
+        cartItems.innerHTML = cart.length ? cart.map((item, i) => `<div class="cart-line"><span>${item.name} x ${item.quantity}</span><strong>${money(item.price * item.quantity)}</strong><button type="button" data-remove="${i}">Remove</button></div>`).join("") : "<p>Your candy bag is empty.</p>";
+        cartTotal.textContent = money(cart.reduce((sum, item) => sum + item.price * item.quantity, 0));
+      }
+      function renderApparel() {
+        apparelGrid.innerHTML = apparel.map((p, i) => `<article class="product-card"><span class="badge gold">${p.section}</span><div class="product-art apparel"></div><h3>${p.name}</h3><p>${p.section}</p><label>Color <select><option>Cream</option><option>Mint</option><option>Berry Pink</option></select></label><label>Size <select><option>S</option><option>M</option><option>L</option><option>XL</option></select></label><div class="price-row"><strong>${money(p.price)}</strong></div><button class="btn small" data-apparel="${i}">Add To Cart</button></article>`).join("");
+      }
+      document.querySelectorAll("#searchInput,#potencyFilter,#thcFilter,#cbdFilter,#typeFilter,#priceFilter,#sortBy").forEach(el => el.addEventListener("input", renderStrains));
+      strainGrid.addEventListener("click", e => {
+        const id = Number(e.target.dataset.id);
+        if (!id) return;
+        const product = strains.find(s => s.id === id);
+        const quantity = Number(document.getElementById(`qty-${id}`).value);
+        cart.push({ productId: id, name: product.name, price: product.price, quantity });
+        saveCart(); renderCart(); document.getElementById("checkout").scrollIntoView({ behavior: "smooth" });
+      });
+      cartItems.addEventListener("click", e => { if (e.target.dataset.remove) { cart.splice(Number(e.target.dataset.remove), 1); saveCart(); renderCart(); } });
+      async function convexMutation(path, args) {
+        const baseUrl = localStorage.getItem("DCS_CONVEX_URL") || window.DCS_CONVEX_URL || "";
+        if (!baseUrl) return null;
+        const response = await fetch(`${baseUrl.replace(/\/$/, "")}/api/mutation`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path, args, format: "json" })
+        });
+        if (!response.ok) throw new Error("Convex request failed.");
+        const payload = await response.json();
+        return payload.value;
+      }
+      checkoutForm.addEventListener("submit", async e => {
+        e.preventDefault();
+        if (!cart.length) return alert("Add at least one strain before placing an order.");
+        const data = Object.fromEntries(new FormData(checkoutForm));
+        const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        let orderNumber = `DCS-${Number(localStorage.getItem("dcsOrderSeed") || 100000) + 1}`;
+        const orderInput = { customerName: `${data.firstName} ${data.lastName}`, phone: data.phone, pickupDate: data.pickupDate, pickupTime: data.pickupTime, items: [...cart], total };
+        try {
+          const saved = await convexMutation("orders:createOrder", orderInput);
+          if (saved?.orderNumber) orderNumber = saved.orderNumber;
+        } catch (error) {
+          console.warn(error);
+        }
+        localStorage.setItem("dcsOrderSeed", orderNumber.replace("DCS-", ""));
+        const order = { orderNumber, ...orderInput, status: "Pending", createdAt: Date.now() };
+        localStorage.setItem("dcsLatestOrder", JSON.stringify(order));
+        cart.length = 0; saveCart(); renderCart(); checkoutForm.reset();
+        confirmation.classList.remove("hidden");
+        confirmation.innerHTML = `<h2>Sweet, You're Set</h2><p>Your pickup order is confirmed.</p><h3>${order.orderNumber}</h3><p>Pickup Time: ${order.pickupDate} at ${order.pickupTime}</p><div>${order.items.map(i => `<p>${i.name} x ${i.quantity} - ${money(i.price * i.quantity)}</p>`).join("")}</div><strong>Total: ${money(total)}</strong>`;
+      });
+      renderStrains(); renderCart(); renderApparel();
+    </script>
+  </body>
+</html>

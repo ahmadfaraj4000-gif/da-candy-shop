@@ -1,0 +1,14 @@
+{
+  "name": "da-candy-shop",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "convex": "convex dev",
+    "dev:admin": "npm --prefix admin run dev",
+    "build:admin": "npm --prefix admin run build"
+  },
+  "dependencies": {
+    "convex": "^1.17.4"
+  }
+}
