@@ -9,7 +9,8 @@
   <body>
     <div class="smoke-layer" aria-hidden="true"></div>
     <header class="site-header">
-      <a class="brand" href="index.html"><span class="brand-mark">DCS</span><span>Da Candy Shop</span></a>
+      <a class="brand" href="index.html"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
       <nav class="site-nav">
         <a href="index.html">Home</a>
         <a href="flower.html">Flower</a>
@@ -62,22 +63,26 @@
       </section>
     </main>
     <footer class="site-footer">
-      <div class="brand"><span class="brand-mark">DCS</span><span>Da Candy Shop</span></div>
+      <div class="brand"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></div>
       <div class="footer-links"><a href="index.html">Home</a><a href="clothing.html">Clothing</a><a href="contact.html">Contact</a></div>
       <p>&copy; 2026 Da Candy Shop. All rights reserved. 21+ only.</p>
     </footer>
     <script>
       window.DCS_CONVEX_URL = "https://opulent-panda-156.convex.cloud";
     </script>
+    <script src="nav.js"></script>
+    <script src="age-gate.js"></script>
     <script type="module">
+      const eighthPrice = 10;
+      const strainImages = ["weed-1.avif","weed-2.avif","weed-3.avif","weed-4.avif","weed-5.avif","weed-6.avif","weed-7.avif","weed-8.avif","weed-9.avif"].map(name => `assets/images/${name}`);
       const fallback = [
-        ["Blue Dream","Hybrid","High",24,1,"Berry-forward balanced hybrid.",35,98],["Runtz","Hybrid","High",27,1,"Sweet candy notes.",42,100],
-        ["Gelato","Hybrid","High",25,1,"Creamy dessert aroma.",40,92],["Wedding Cake","Indica","High",28,1,"Dense dessert-forward flower.",45,95],
-        ["OG Kush","Indica","High",23,1,"Classic earthy fuel.",38,88],["Sour Diesel","Sativa","High",22,0,"Bright pungent sativa.",36,84],
-        ["White Widow","Hybrid","Medium",19,1,"Old-school balance.",32,76],["Purple Haze","Sativa","Medium",20,1,"Floral grape notes.",34,81],
-        ["Pineapple Express","Hybrid","Medium",21,1,"Tropical hybrid.",35,86],["Northern Lights","Indica","High",24,1,"Calming pine classic.",37,90],
-        ["Granddaddy Purple","Indica","High",25,1,"Purple grape notes.",39,91],["Gorilla Glue","Hybrid","High",29,1,"Resin-heavy potency.",46,97]
-      ].map((s, i) => ({ id: String(i + 1), name: s[0], strainType: s[1], potency: s[2], thc: s[3], cbd: s[4], description: s[5], price: s[6], popularity: s[7] }));
+        ["Blue Dream","Hybrid","High",24,1,"Berry-forward balanced hybrid.",98],["Runtz","Hybrid","High",27,1,"Sweet candy notes.",100],
+        ["Gelato","Hybrid","High",25,1,"Creamy dessert aroma.",92],["Wedding Cake","Indica","High",28,1,"Dense dessert-forward flower.",95],
+        ["OG Kush","Indica","High",23,1,"Classic earthy fuel.",88],["Sour Diesel","Sativa","High",22,0,"Bright pungent sativa.",84],
+        ["White Widow","Hybrid","Medium",19,1,"Old-school balance.",76],["Purple Haze","Sativa","Medium",20,1,"Floral grape notes.",81],
+        ["Pineapple Express","Hybrid","Medium",21,1,"Tropical hybrid.",86],["Northern Lights","Indica","High",24,1,"Calming pine classic.",90],
+        ["Granddaddy Purple","Indica","High",25,1,"Purple grape notes.",91],["Gorilla Glue","Hybrid","High",29,1,"Resin-heavy potency.",97]
+      ].map((s, i) => ({ id: String(i + 1), name: s[0], strainType: s[1], potency: s[2], thc: s[3], cbd: s[4], description: s[5], price: eighthPrice, popularity: s[6], image: strainImages[i % strainImages.length] }));
       const cart = [];
       let inventory = fallback;
       const money = value => `$${Number(value).toFixed(2)}`;
@@ -97,7 +102,7 @@
       async function loadInventory() {
         try {
           const live = await convexCall("query", "inventory:listInventory", {});
-          if (Array.isArray(live) && live.length) inventory = live.map(item => ({ ...item, id: item._id, popularity: item.popularity || 0 }));
+          if (Array.isArray(live) && live.length) inventory = live.map((item, index) => ({ ...item, id: item._id, price: eighthPrice, image: item.image || strainImages[index % strainImages.length], popularity: item.popularity || 0 }));
         } catch (error) {
           console.warn(error);
         }
@@ -116,7 +121,7 @@
         let rows = inventory.filter(item => item.name.toLowerCase().includes(search) && (!flowerType.value || item.strainType === flowerType.value));
         rows.sort((a,b) => flowerSort.value === "potency" ? b.thc - a.thc : flowerSort.value === "low" ? a.price - b.price : flowerSort.value === "high" ? b.price - a.price : (b.popularity || 0) - (a.popularity || 0));
         flowerGrid.innerHTML = rows.map(item => {
-          return `<article class="product-card strain-card"><div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"></div><div class="card-top"><span class="badge">${item.strainType}</span><span>${item.potency}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="specs"><span>THC ${item.thc}%</span><span>CBD ${item.cbd}%</span><span>${money(item.price)}</span></div><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" /></label><button class="btn small" data-id="${item.id}">Order Now</button></article>`;
+          return `<article class="product-card strain-card"><div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${item.image}" alt="${item.name} strain" /></div><div class="card-top"><span class="badge">${item.strainType}</span><span>${item.potency}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="specs"><span>THC ${item.thc}%</span><span>CBD ${item.cbd}%</span><span>${money(eighthPrice)}</span></div><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" /></label><button class="btn small" data-id="${item.id}">Add to Cart</button></article>`;
         }).join("");
       }
       flowerGrid.addEventListener("click", event => {
@@ -124,9 +129,12 @@
         if (!id) return;
         const item = inventory.find(strain => strain.id === id || strain._id === id);
         const quantity = Number(document.getElementById(`qty-${id}`).value);
-        cart.push({ productId: id, inventoryId: item._id, name: item.name, price: item.price, quantity });
+        cart.push({ productId: id, inventoryId: item._id, name: item.name, price: eighthPrice, quantity });
         renderCart();
-        document.getElementById("checkout").scrollIntoView({ behavior: "smooth" });
+        event.target.textContent = "Added";
+        window.setTimeout(() => {
+          event.target.textContent = "Add to Cart";
+        }, 900);
       });
       flowerCart.addEventListener("click", event => {
         if (event.target.dataset.remove) {

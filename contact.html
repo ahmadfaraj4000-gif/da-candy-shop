@@ -9,7 +9,8 @@
   <body>
     <div class="smoke-layer" aria-hidden="true"></div>
     <header class="site-header">
-      <a class="brand" href="index.html"><span class="brand-mark">DCS</span><span>Da Candy Shop</span></a>
+      <a class="brand" href="index.html"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
       <nav class="site-nav">
         <a href="index.html">Home</a>
         <a href="flower.html">Flower</a>
@@ -65,10 +66,12 @@
       </section>
     </main>
     <footer class="site-footer">
-      <div class="brand"><span class="brand-mark">DCS</span><span>Da Candy Shop</span></div>
+      <div class="brand"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></div>
       <div class="footer-links"><a href="index.html">Home</a><a href="flower.html">Flower</a><a href="#">Instagram</a></div>
       <p>&copy; 2026 Da Candy Shop. All rights reserved.</p>
     </footer>
+    <script src="nav.js"></script>
+    <script src="age-gate.js"></script>
     <script>
       async function convexMutation(path, args) {
         const baseUrl = localStorage.getItem("DCS_CONVEX_URL") || window.DCS_CONVEX_URL || "";

@@ -9,7 +9,8 @@
   <body>
     <div class="smoke-layer" aria-hidden="true"></div>
     <header class="site-header">
-      <a class="brand" href="index.html"><span class="brand-mark">DCS</span><span>Da Candy Shop</span></a>
+      <a class="brand" href="index.html"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
       <nav class="site-nav" aria-label="Primary navigation">
         <a href="index.html">Home</a>
         <a href="#flower">Flower</a>
@@ -77,26 +78,30 @@
     </main>
 
     <footer class="site-footer">
-      <div class="brand"><span class="brand-mark">DCS</span><span>Da Candy Shop</span></div>
+      <div class="brand"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></div>
       <div class="footer-links"><a href="index.html">Home</a><a href="#flower">Flower</a><a href="contact.html">Contact</a></div>
       <p>&copy; 2026 Da Candy Shop. All rights reserved.</p>
     </footer>
+    <script src="nav.js"></script>
+    <script src="age-gate.js"></script>
 
     <script type="module">
+      const eighthPrice = 10;
+      const strainImages = ["weed-1.avif","weed-2.avif","weed-3.avif","weed-4.avif","weed-5.avif","weed-6.avif","weed-7.avif","weed-8.avif","weed-9.avif"].map(name => `assets/images/${name}`);
       const strains = [
-        ["Blue Dream","Hybrid","High",24,1,"Berry-forward hybrid with a smooth, balanced profile.",35,98],
-        ["Runtz","Hybrid","High",27,1,"Sweet candy notes with colorful bag appeal.",42,100],
-        ["Gelato","Hybrid","High",25,1,"Creamy dessert aroma and relaxing finish.",40,92],
-        ["Wedding Cake","Indica","High",28,1,"Dense, rich flower with frosting-like sweetness.",45,95],
-        ["OG Kush","Indica","High",23,1,"Classic earthy fuel profile with lasting body notes.",38,88],
-        ["Sour Diesel","Sativa","High",22,0,"Bright, pungent sativa with energizing character.",36,84],
-        ["White Widow","Hybrid","Medium",19,1,"Old-school balanced strain with herbal bite.",32,76],
-        ["Purple Haze","Sativa","Medium",20,1,"Floral, grape-leaning sativa with smooth lift.",34,81],
-        ["Pineapple Express","Hybrid","Medium",21,1,"Tropical aroma with easygoing daytime appeal.",35,86],
-        ["Northern Lights","Indica","High",24,1,"Calming classic indica with pine and spice.",37,90],
-        ["Granddaddy Purple","Indica","High",25,1,"Purple flower with grape notes and deep relaxation.",39,91],
-        ["Gorilla Glue","Hybrid","High",29,1,"Resin-heavy hybrid with powerful potency.",46,97]
-      ].map((s, i) => ({ id: i + 1, name: s[0], type: s[1], potency: s[2], thc: s[3], cbd: s[4], description: s[5], price: s[6], popularity: s[7], image: "" }));
+        ["Blue Dream","Hybrid","High",24,1,"Berry-forward hybrid with a smooth, balanced profile.",98],
+        ["Runtz","Hybrid","High",27,1,"Sweet candy notes with colorful bag appeal.",100],
+        ["Gelato","Hybrid","High",25,1,"Creamy dessert aroma and relaxing finish.",92],
+        ["Wedding Cake","Indica","High",28,1,"Dense, rich flower with frosting-like sweetness.",95],
+        ["OG Kush","Indica","High",23,1,"Classic earthy fuel profile with lasting body notes.",88],
+        ["Sour Diesel","Sativa","High",22,0,"Bright, pungent sativa with energizing character.",84],
+        ["White Widow","Hybrid","Medium",19,1,"Old-school balanced strain with herbal bite.",76],
+        ["Purple Haze","Sativa","Medium",20,1,"Floral, grape-leaning sativa with smooth lift.",81],
+        ["Pineapple Express","Hybrid","Medium",21,1,"Tropical aroma with easygoing daytime appeal.",86],
+        ["Northern Lights","Indica","High",24,1,"Calming classic indica with pine and spice.",90],
+        ["Granddaddy Purple","Indica","High",25,1,"Purple flower with grape notes and deep relaxation.",91],
+        ["Gorilla Glue","Hybrid","High",29,1,"Resin-heavy hybrid with powerful potency.",97]
+      ].map((s, i) => ({ id: i + 1, name: s[0], type: s[1], potency: s[2], thc: s[3], cbd: s[4], description: s[5], price: eighthPrice, popularity: s[6], image: strainImages[i % strainImages.length] }));
       const apparel = ["DCS Sugar Rush Tee","Black Cherry Hoodie","Cherry Leaf Hat","Cream Shop Jacket","Candy Knit Beanie"].map((name, i) => ({ name, price: [28,68,32,95,24][i], section: ["New Arrivals","Featured Apparel","Best Sellers","Featured Apparel","Best Sellers"][i] }));
       const cart = JSON.parse(localStorage.getItem("dcsCart") || "[]");
       const money = value => `$${Number(value).toFixed(2)}`;
@@ -107,7 +112,7 @@
         priceLabel.textContent = `$${maxPrice} max`;
         let list = strains.filter(s => s.name.toLowerCase().includes(q) && (!potencyFilter.value || s.potency === potencyFilter.value) && (!typeFilter.value || s.type === typeFilter.value) && s.thc >= Number(thcFilter.value || 0) && s.cbd >= Number(cbdFilter.value || 0) && s.price <= maxPrice);
         list.sort((a,b) => sortBy.value === "potency" ? b.thc - a.thc : sortBy.value === "low" ? a.price - b.price : sortBy.value === "high" ? b.price - a.price : b.popularity - a.popularity);
-        strainGrid.innerHTML = list.map(s => `<article class="product-card strain-card"><div class="product-art ${s.type.toLowerCase()}"></div><div class="card-top"><span class="badge">${s.type}</span><span>${s.potency}</span></div><h3>${s.name}</h3><p>${s.description}</p><div class="specs"><span>THC ${s.thc}%</span><span>CBD ${s.cbd}%</span><span>${money(s.price)}</span></div><label>Qty <input class="qty" id="qty-${s.id}" type="number" min="1" max="20" value="1" /></label><button class="btn small" data-id="${s.id}">Order Now</button></article>`).join("");
+        strainGrid.innerHTML = list.map(s => `<article class="product-card strain-card"><div class="product-art ${s.type.toLowerCase()}"><img src="${s.image}" alt="${s.name} strain" /></div><div class="card-top"><span class="badge">${s.type}</span><span>${s.potency}</span></div><h3>${s.name}</h3><p>${s.description}</p><div class="specs"><span>THC ${s.thc}%</span><span>CBD ${s.cbd}%</span><span>${money(eighthPrice)}</span></div><label>Qty <input class="qty" id="qty-${s.id}" type="number" min="1" max="20" value="1" /></label><button class="btn small" data-id="${s.id}">Add to Cart</button></article>`).join("");
       }
       function renderCart() {
         cartItems.innerHTML = cart.length ? cart.map((item, i) => `<div class="cart-line"><span>${item.name} x ${item.quantity}</span><strong>${money(item.price * item.quantity)}</strong><button type="button" data-remove="${i}">Remove</button></div>`).join("") : "<p>Your candy bag is empty.</p>";
@@ -122,8 +127,13 @@
         if (!id) return;
         const product = strains.find(s => s.id === id);
         const quantity = Number(document.getElementById(`qty-${id}`).value);
-        cart.push({ productId: id, name: product.name, price: product.price, quantity });
-        saveCart(); renderCart(); document.getElementById("checkout").scrollIntoView({ behavior: "smooth" });
+        cart.push({ productId: id, name: product.name, price: eighthPrice, quantity });
+        saveCart();
+        renderCart();
+        e.target.textContent = "Added";
+        window.setTimeout(() => {
+          e.target.textContent = "Add to Cart";
+        }, 900);
       });
       cartItems.addEventListener("click", e => { if (e.target.dataset.remove) { cart.splice(Number(e.target.dataset.remove), 1); saveCart(); renderCart(); } });
       async function convexMutation(path, args) {
