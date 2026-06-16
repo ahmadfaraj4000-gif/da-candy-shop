@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 72" role="img" aria-labelledby="title">
+  <title id="title">Cash App</title>
+  <rect width="220" height="72" rx="18" fill="#00d632"/>
+  <rect x="17" y="14" width="44" height="44" rx="12" fill="#fff"/>
+  <path d="M42.7 22.5c5.4.5 9.1 3.2 10.9 7.3l-7.2 3.3c-.9-2.3-2.9-3.5-6.1-3.5-2.8 0-4.4.8-4.4 2.4 0 1.8 2.4 2.3 6.2 2.9 6.3 1 11.7 2.9 11.7 9.3 0 5.4-4.1 8.9-11.1 9.7v5.1h-7.2v-5.2c-5.9-.8-10.1-3.9-11.8-8.8l7.5-3.2c1.1 3 3.7 4.6 7.6 4.6 3.5 0 5.2-.9 5.2-2.5 0-1.8-2.3-2.4-6.2-3-6.5-1-11.6-3-11.6-9.2 0-5.1 3.8-8.5 10.2-9.2v-4.6h6.3v4.6z" fill="#00d632"/>
+  <text x="78" y="45" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="800">Cash App</text>
+</svg>
