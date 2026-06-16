@@ -17,6 +17,10 @@
         <a href="about.html">About</a>
         <a href="contact.html">Contact</a>
       </nav>
+      <button id="headerCart" class="header-cart" type="button" aria-label="View checkout cart">
+        <span class="header-cart-icon" aria-hidden="true"></span>
+        <span id="headerCartCount">0</span>
+      </button>
     </header>
     <main>
       <section class="section shop-layout">
@@ -100,18 +104,19 @@
         render();
       }
       function renderCart() {
+        const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const count = cart.reduce((sum, item) => sum + item.quantity, 0);
         flowerCart.innerHTML = cart.length ? cart.map((item, index) => `<div class="cart-line"><span>${item.name} x ${item.quantity}</span><strong>${money(item.price * item.quantity)}</strong><button type="button" data-remove="${index}">Remove</button></div>`).join("") : "<p>Your candy bag is empty.</p>";
-        flowerTotal.textContent = money(cart.reduce((sum, item) => sum + item.price * item.quantity, 0));
+        flowerTotal.textContent = money(total);
+        headerCartCount.textContent = count;
+        headerCart.setAttribute("aria-label", count ? `View checkout cart, ${count} item${count === 1 ? "" : "s"}` : "View checkout cart");
       }
       function render() {
         const search = flowerSearch.value.toLowerCase();
         let rows = inventory.filter(item => item.name.toLowerCase().includes(search) && (!flowerType.value || item.strainType === flowerType.value));
         rows.sort((a,b) => flowerSort.value === "potency" ? b.thc - a.thc : flowerSort.value === "low" ? a.price - b.price : flowerSort.value === "high" ? b.price - a.price : (b.popularity || 0) - (a.popularity || 0));
         flowerGrid.innerHTML = rows.map(item => {
-          const stock = Number(item.quantity ?? 20);
-          const disabled = stock < 1 ? "disabled" : "";
-          const buttonText = stock < 1 ? "Sold Out" : "Order Now";
-          return `<article class="product-card strain-card"><div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"></div><div class="card-top"><span class="badge">${item.strainType}</span><span>${item.potency}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="specs"><span>THC ${item.thc}%</span><span>CBD ${item.cbd}%</span><span>${money(item.price)}</span><span>${stock} left</span></div><label>Qty <input id="qty-${item.id}" type="number" min="1" max="${Math.max(stock, 1)}" value="1" ${disabled} /></label><button class="btn small" data-id="${item.id}" ${disabled}>${buttonText}</button></article>`;
+          return `<article class="product-card strain-card"><div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"></div><div class="card-top"><span class="badge">${item.strainType}</span><span>${item.potency}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="specs"><span>THC ${item.thc}%</span><span>CBD ${item.cbd}%</span><span>${money(item.price)}</span></div><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" /></label><button class="btn small" data-id="${item.id}">Order Now</button></article>`;
         }).join("");
       }
       flowerGrid.addEventListener("click", event => {
@@ -128,6 +133,9 @@
           cart.splice(Number(event.target.dataset.remove), 1);
           renderCart();
         }
+      });
+      headerCart.addEventListener("click", () => {
+        document.getElementById("checkout").scrollIntoView({ behavior: "smooth" });
       });
       flowerCheckout.addEventListener("submit", async event => {
         event.preventDefault();
