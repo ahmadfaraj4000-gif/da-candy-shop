@@ -2180,6 +2180,56 @@ body .smoke-layer {
   }
 }
 
+@media (max-width: 860px) {
+  .flower-header {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: .55rem;
+  }
+
+  .flower-header .brand {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .flower-header .header-cart {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    top: 0;
+    min-width: 48px;
+    height: 40px;
+    min-height: 40px !important;
+    padding: .35rem .62rem;
+  }
+
+  .flower-header .nav-toggle {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .flower-header .site-nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+@media (max-width: 520px) {
+  .flower-header {
+    grid-template-columns: minmax(0, 1fr) 48px 46px;
+    gap: .5rem;
+  }
+
+  .flower-header .brand-logo {
+    width: clamp(104px, 34vw, 118px);
+  }
+
+  .flower-header .header-cart {
+    width: 48px;
+    padding: 0;
+    gap: .2rem;
+  }
+}
+
 /* Flower checkout refinement. */
 .checkout-section .section-heading {
   margin-bottom: 1rem;
