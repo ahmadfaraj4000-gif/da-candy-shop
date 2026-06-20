@@ -8,15 +8,14 @@
   </head>
   <body>
     <div class="smoke-layer" aria-hidden="true"></div>
-    <header class="site-header">
+    <header class="site-header flower-header">
       <a class="brand" href="index.html"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></a>
       <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
       <nav class="site-nav">
         <a href="index.html">Home</a>
         <a href="flower.html">Flower</a>
         <a href="clothing.html">Clothing</a>
-        <a href="about.html">About</a>
-        <a href="contact.html">Contact</a>
+        <a href="tel:+15107062263">Contact</a>
       </nav>
       <button id="headerCart" class="header-cart" type="button" aria-label="View checkout cart">
         <span class="header-cart-icon" aria-hidden="true"></span>
@@ -40,19 +39,24 @@
       <section id="checkout" class="section checkout-section">
         <div class="section-heading"><p class="eyebrow">Pickup Only</p><h2>Bag It Up</h2></div>
         <form id="flowerCheckout" class="checkout-grid glass">
-          <div>
+          <div class="checkout-panel customer-panel">
             <h3>Customer Information</h3>
             <label>First Name <input name="firstName" required /></label>
             <label>Last Name <input name="lastName" required /></label>
             <label>Phone Number <input name="phone" required /></label>
           </div>
-          <div>
+          <div class="checkout-panel pickup-panel">
             <h3>Pickup Time</h3>
             <label>Pickup Date <input name="pickupDate" type="date" required /></label>
-            <label>Pickup Time <input name="pickupTime" type="time" required /></label>
-            <p class="payment-due">Payment Due At Pickup</p>
+            <label>Pickup Time <select name="pickupTime" id="pickupTime" required></select></label>
+            <fieldset class="payment-choice">
+              <legend>Payment</legend>
+              <label><input type="radio" name="paymentMethod" value="pay_at_store" checked /> Pay at the store</label>
+              <label><input type="radio" name="paymentMethod" value="stripe" /> Pay online</label>
+            </fieldset>
+            <p id="paymentNote" class="payment-due">Payment Due At Pickup</p>
           </div>
-          <div class="order-summary">
+          <div class="order-summary checkout-panel">
             <h3>Order Details</h3>
             <div id="flowerCart"></div>
             <div class="total-row"><span>Total</span><strong id="flowerTotal">$0.00</strong></div>
@@ -64,11 +68,12 @@
     </main>
     <footer class="site-footer">
       <div class="brand"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></div>
-      <div class="footer-links"><a href="index.html">Home</a><a href="clothing.html">Clothing</a><a href="contact.html">Contact</a></div>
+      <div class="footer-links"><a href="index.html">Home</a><a href="clothing.html">Clothing</a><a href="tel:+15107062263">Contact</a></div>
       <p>&copy; 2026 Da Candy Shop. All rights reserved. 21+ only.</p>
     </footer>
     <script>
-      window.DCS_CONVEX_URL = "https://opulent-panda-156.convex.cloud";
+      window.DCS_CONVEX_URL = "https://clear-ferret-953.convex.cloud";
+      window.DCS_STRIPE_CHECKOUT_API_URL = "https://clear-ferret-953.convex.site/create-checkout-session";
     </script>
     <script src="nav.js"></script>
     <script src="age-gate.js"></script>
@@ -87,6 +92,36 @@
       let inventory = fallback;
       const money = value => `$${Number(value).toFixed(2)}`;
       const convexUrl = () => localStorage.getItem("DCS_CONVEX_URL") || window.DCS_CONVEX_URL || "";
+      const stripeCheckoutUrl = () => localStorage.getItem("DCS_STRIPE_CHECKOUT_API_URL") || window.DCS_STRIPE_CHECKOUT_API_URL || "";
+      function formatPickupOption(hour, minute) {
+        const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+        const period = hour >= 12 ? "PM" : "AM";
+        const displayHour = hour % 12 || 12;
+        return { value, label: `${displayHour}:${String(minute).padStart(2, "0")} ${period}` };
+      }
+      function currentPickupTimeValue() {
+        const now = new Date();
+        let hour = now.getHours();
+        let minute = Math.ceil(now.getMinutes() / 15) * 15;
+        if (minute === 60) {
+          hour += 1;
+          minute = 0;
+        }
+        if (hour < 9) return "09:00";
+        if (hour > 17 || (hour === 17 && minute > 0)) return "17:00";
+        return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+      }
+      function populatePickupTimes() {
+        const options = [];
+        for (let hour = 9; hour <= 17; hour++) {
+          for (let minute = 0; minute < 60; minute += 15) {
+            if (hour === 17 && minute > 0) continue;
+            options.push(formatPickupOption(hour, minute));
+          }
+        }
+        pickupTime.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join("");
+        pickupTime.value = currentPickupTimeValue();
+      }
       async function convexCall(kind, path, args) {
         const base = convexUrl();
         if (!base) return null;
@@ -98,6 +133,27 @@
         if (!response.ok) throw new Error("Convex request failed");
         const payload = await response.json();
         return payload.value;
+      }
+      async function createStripeCheckoutSession(orderId, items) {
+        const base = stripeCheckoutUrl();
+        if (!base) throw new Error("Stripe checkout URL is not configured.");
+
+        const response = await fetch(base, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId,
+            items: items.map(item => ({
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity
+            }))
+          })
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || "Stripe checkout session failed.");
+        return payload;
       }
       async function loadInventory() {
         try {
@@ -145,27 +201,64 @@
       headerCart.addEventListener("click", () => {
         document.getElementById("checkout").scrollIntoView({ behavior: "smooth" });
       });
+      flowerCheckout.paymentMethod.forEach(input => {
+        input.addEventListener("change", () => {
+          paymentNote.textContent = input.value === "stripe" && input.checked ? "Secure Online Payment" : "Payment Due At Pickup";
+        });
+      });
       flowerCheckout.addEventListener("submit", async event => {
         event.preventDefault();
         if (!cart.length) return alert("Add at least one strain before placing an order.");
         const data = Object.fromEntries(new FormData(flowerCheckout));
+        const payOnline = data.paymentMethod === "stripe";
         const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        const orderInput = { customerName: `${data.firstName} ${data.lastName}`, phone: data.phone, pickupDate: data.pickupDate, pickupTime: data.pickupTime, items: [...cart], total };
+        const orderInput = { customerName: `${data.firstName} ${data.lastName}`, phone: data.phone, pickupDate: data.pickupDate, pickupTime: data.pickupTime, items: [...cart], total, paymentMethod: data.paymentMethod };
         let orderNumber = `DCS-${Number(localStorage.getItem("dcsOrderSeed") || 100000) + 1}`;
+        let orderId = null;
+        const submitButton = flowerCheckout.querySelector("button[type='submit']");
+        submitButton.disabled = true;
+        submitButton.textContent = payOnline ? "Opening Stripe..." : "Placing Order...";
         try {
           const saved = await convexCall("mutation", "orders:createOrder", orderInput);
+          if (saved?.id) orderId = saved.id;
           if (saved?.orderNumber) orderNumber = saved.orderNumber;
         } catch (error) {
           console.warn(error);
+          submitButton.disabled = false;
+          submitButton.textContent = "Place Order";
+          return alert("We could not save your order. Please try again.");
+        }
+        if (payOnline) {
+          try {
+            const session = await createStripeCheckoutSession(orderId, cart);
+            if (!session.url) throw new Error("Stripe did not return a checkout URL.");
+            window.location.href = session.url;
+            return;
+          } catch (error) {
+            console.warn(error);
+            submitButton.disabled = false;
+            submitButton.textContent = "Place Order";
+            return alert(`Stripe checkout could not be started. ${error.message || "Please try again."}`);
+          }
         }
         localStorage.setItem("dcsOrderSeed", orderNumber.replace("DCS-", ""));
         flowerConfirmation.classList.remove("hidden");
-        flowerConfirmation.innerHTML = `<h2>Sweet, You're Set</h2><h3>${orderNumber}</h3><p>Pickup Time: ${data.pickupDate} at ${data.pickupTime}</p>${cart.map(item => `<p>${item.name} x ${item.quantity}</p>`).join("")}<strong>Total: ${money(total)}</strong>`;
+        flowerConfirmation.innerHTML = `<h2>Sweet, You're Set</h2><h3>${orderNumber}</h3><p>Pickup Time: ${data.pickupDate} at ${data.pickupTime}</p><p>Payment: Pay at the store</p>${cart.map(item => `<p>${item.name} x ${item.quantity}</p>`).join("")}<strong>Total: ${money(total)}</strong>`;
         cart.length = 0;
         renderCart();
         flowerCheckout.reset();
+        populatePickupTimes();
+        paymentNote.textContent = "Payment Due At Pickup";
+        submitButton.disabled = false;
+        submitButton.textContent = "Place Order";
       });
       [flowerSearch, flowerType, flowerSort].forEach(input => input.addEventListener("input", render));
+      if (new URLSearchParams(window.location.search).get("payment") === "success") {
+        flowerConfirmation.classList.remove("hidden");
+        flowerConfirmation.innerHTML = "<h2>Payment Received</h2><p>Your online payment was completed. Your pickup order is being prepared.</p>";
+        document.getElementById("checkout").scrollIntoView({ behavior: "smooth" });
+      }
+      populatePickupTimes();
       renderCart();
       loadInventory();
     </script>

@@ -5,14 +5,16 @@
     if (!header || !nav) return;
 
     button.addEventListener("click", () => {
-      header.classList.add("nav-open");
-      button.setAttribute("aria-expanded", "true");
+      const isOpen = header.classList.toggle("nav-open");
+      button.setAttribute("aria-expanded", String(isOpen));
+      button.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
     });
 
     nav.addEventListener("click", (event) => {
       if (event.target.closest("a")) {
         header.classList.remove("nav-open");
         button.setAttribute("aria-expanded", "false");
+        button.setAttribute("aria-label", "Open menu");
       }
     });
 
@@ -20,6 +22,7 @@
       if (event.key === "Escape") {
         header.classList.remove("nav-open");
         button.setAttribute("aria-expanded", "false");
+        button.setAttribute("aria-label", "Open menu");
       }
     });
   });

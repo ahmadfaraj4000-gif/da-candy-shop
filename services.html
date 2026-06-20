@@ -15,7 +15,7 @@
         <a href="index.html">Home</a>
         <a href="#flower">Flower</a>
         <a href="#apparel">Apparel</a>
-        <a href="contact.html">Contact</a>
+        <a href="tel:+15107062263">Contact</a>
       </nav>
     </header>
 
@@ -52,7 +52,7 @@
           <div>
             <h3>Pickup Scheduling</h3>
             <label>Pickup Date <input name="pickupDate" type="date" required /></label>
-            <label>Pickup Time <input name="pickupTime" type="time" required /></label>
+            <label>Pickup Time <input name="pickupTime" type="time" min="09:00" max="17:00" step="900" required oninput="this.setCustomValidity('')" onchange="this.setCustomValidity('')" oninvalid="this.setCustomValidity(this.validity.rangeUnderflow ? 'Pick up time must be 9:00 AM or later.' : this.validity.rangeOverflow ? 'Pick up time must be 5:00 PM or earlier.' : this.validity.stepMismatch ? 'Pick up time must be in 15-minute intervals.' : 'Pick up time is required.')" /></label>
             <p class="payment-due">Payment Due At Pickup</p>
           </div>
           <div class="order-summary">
@@ -79,7 +79,7 @@
 
     <footer class="site-footer">
       <div class="brand"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></div>
-      <div class="footer-links"><a href="index.html">Home</a><a href="#flower">Flower</a><a href="contact.html">Contact</a></div>
+      <div class="footer-links"><a href="index.html">Home</a><a href="#flower">Flower</a><a href="tel:+15107062263">Contact</a></div>
       <p>&copy; 2026 Da Candy Shop. All rights reserved.</p>
     </footer>
     <script src="nav.js"></script>

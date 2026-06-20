@@ -9,6 +9,7 @@
     "build:admin": "npm --prefix admin run build"
   },
   "dependencies": {
-    "convex": "^1.17.4"
+    "convex": "^1.17.4",
+    "stripe": "^22.2.2"
   }
 }

@@ -1,0 +1,39 @@
+Convex Stripe setup values
+==========================
+
+Set these in Convex. Do not put secret keys in index.html or any GitHub Pages file.
+
+npx convex env set STRIPE_SECRET_KEY "sk_test_REPLACE_ME"
+npx convex env set STRIPE_WEBHOOK_SECRET "whsec_REPLACE_ME"
+npx convex env set CLIENT_ORIGIN "https://ahmadfaraj4000-gif.github.io"
+npx convex env set CUSTOMER_SITE_URL "https://ahmadfaraj4000-gif.github.io/da-candy-shop"
+
+Customer checkout API:
+https://clear-ferret-953.convex.site/create-checkout-session
+
+Stripe webhook endpoint:
+https://clear-ferret-953.convex.site/stripe-webhook
+
+Stripe webhook events to listen for:
+checkout.session.completed
+payment_intent.payment_failed
+
+Frontend fetch example:
+
+const response = await fetch("https://clear-ferret-953.convex.site/create-checkout-session", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    orderId,
+    items: cartItems.map(item => ({
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity
+    }))
+  })
+});
+
+const { url } = await response.json();
+window.location.href = url;
