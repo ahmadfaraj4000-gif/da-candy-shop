@@ -1,5 +1,9 @@
 (function () {
   const key = "dcs-age-verified";
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("resetAge") === "1") {
+    localStorage.removeItem(key);
+  }
   if (localStorage.getItem(key) === "yes") return;
 
   const gate = document.createElement("div");
@@ -9,7 +13,9 @@
   gate.setAttribute("aria-labelledby", "ageGateTitle");
   gate.innerHTML = `
     <div class="age-gate-panel">
-      <div class="brand"><span class="brand-mark">DCS</span><span>Da Candy Shop</span></div>
+      <div class="age-gate-brand">
+        <img src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" />
+      </div>
       <h2 id="ageGateTitle">Are you 21 or older?</h2>
       <label class="age-check"><input id="ageGateCheck" type="checkbox" /> Yes, I am 21 or older.</label>
       <button id="ageGateEnter" class="btn primary full" type="button" disabled>Enter Site</button>

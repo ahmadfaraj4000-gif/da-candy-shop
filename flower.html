@@ -23,21 +23,25 @@
       </button>
     </header>
     <main>
-      <section class="section shop-layout">
+      <section class="section shop-layout flower-menu-shell">
         <div class="section-heading wide">
           <p class="eyebrow">Flower Counter</p>
-          <h1>Pick your favorite flavor for pickup</h1>
-          <p class="tagline">Browse dessert-forward strains, filter the shelf, and reserve your order for a smooth stop by the shop.</p>
+          <h1>Live shelf, pickup ready</h1>
+          <p class="tagline">Menu cards mirror the admin inventory, so names, prices, images, and availability stay in step.</p>
         </div>
         <aside class="filter-panel glass">
+          <div class="filter-title">
+            <span>Browse</span>
+            <strong>Live Menu</strong>
+          </div>
           <label>Search <input id="flowerSearch" type="search" placeholder="Search strains" /></label>
           <label>Type <select id="flowerType"><option value="">All</option><option>Indica</option><option>Sativa</option><option>Hybrid</option></select></label>
           <label>Sort By <select id="flowerSort"><option value="popular">Most Popular</option><option value="potency">Highest Potency</option><option value="low">Lowest Price</option><option value="high">Highest Price</option></select></label>
         </aside>
         <div id="flowerGrid" class="product-grid strain-grid"></div>
       </section>
-      <section id="checkout" class="section checkout-section">
-        <div class="section-heading"><p class="eyebrow">Pickup Only</p><h2>Bag It Up</h2></div>
+      <section id="checkout" class="section checkout-section modern-checkout">
+        <div class="section-heading"><p class="eyebrow">Pickup Only</p><h2>Bag it up</h2></div>
         <form id="flowerCheckout" class="checkout-grid glass">
           <div class="checkout-panel customer-panel">
             <h3>Customer Information</h3>
@@ -77,6 +81,7 @@
     </script>
     <script src="nav.js"></script>
     <script src="age-gate.js"></script>
+    <script src="flower-promo.js"></script>
     <script type="module">
       const eighthPrice = 10;
       const strainImages = ["weed-1.avif","weed-2.avif","weed-3.avif","weed-4.avif","weed-5.avif","weed-6.avif","weed-7.avif","weed-8.avif","weed-9.avif"].map(name => `assets/images/${name}`);
@@ -91,8 +96,8 @@
       const cart = [];
       let inventory = fallback;
       const money = value => `$${Number(value).toFixed(2)}`;
-      const convexUrl = () => localStorage.getItem("DCS_CONVEX_URL") || window.DCS_CONVEX_URL || "";
-      const stripeCheckoutUrl = () => localStorage.getItem("DCS_STRIPE_CHECKOUT_API_URL") || window.DCS_STRIPE_CHECKOUT_API_URL || "";
+      const convexUrl = () => window.DCS_CONVEX_URL || localStorage.getItem("DCS_CONVEX_URL") || "";
+      const stripeCheckoutUrl = () => window.DCS_STRIPE_CHECKOUT_API_URL || localStorage.getItem("DCS_STRIPE_CHECKOUT_API_URL") || "";
       function formatPickupOption(hour, minute) {
         const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
         const period = hour >= 12 ? "PM" : "AM";
@@ -145,7 +150,7 @@
             orderId,
             items: items.map(item => ({
               name: item.name,
-              price: eighthPrice,
+              price: item.price,
               quantity: item.quantity
             }))
           })
@@ -162,7 +167,6 @@
             inventory = live.map((item, index) => ({
               ...item,
               id: item._id,
-              price: eighthPrice,
               image: item.image || strainImages[index % strainImages.length],
               popularity: item.popularity || 0
             }));
@@ -175,7 +179,7 @@
       function renderCart() {
         const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
         const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-        flowerCart.innerHTML = cart.length ? cart.map((item, index) => `<div class="cart-line"><span>${item.name} x ${item.quantity}</span><strong>${money(item.price * item.quantity)}</strong><button type="button" data-remove="${index}">Remove</button></div>`).join("") : "<p>Your candy bag is empty.</p>";
+        flowerCart.innerHTML = cart.length ? cart.map((item, index) => `<div class="cart-line"><span>${item.name} <small>x ${item.quantity}</small></span><strong>${money(item.price * item.quantity)}</strong><button type="button" data-remove="${index}">Remove</button></div>`).join("") : "<p>Your candy bag is empty.</p>";
         flowerTotal.textContent = money(total);
         headerCartCount.textContent = count;
         headerCart.setAttribute("aria-label", count ? `View checkout cart, ${count} item${count === 1 ? "" : "s"}` : "View checkout cart");
@@ -186,7 +190,8 @@
         rows.sort((a,b) => flowerSort.value === "potency" ? b.thc - a.thc : flowerSort.value === "low" ? a.price - b.price : flowerSort.value === "high" ? b.price - a.price : (b.popularity || 0) - (a.popularity || 0));
         flowerGrid.innerHTML = rows.length
           ? rows.map(item => {
-              return `<article class="product-card strain-card"><div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${item.image}" alt="${item.name} strain" /></div><div class="card-top"><span class="badge">${item.strainType}</span><span>${item.potency}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="specs"><span>THC ${item.thc}%</span><span>CBD ${item.cbd}%</span><span>${money(item.price)}</span></div><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" /></label><button class="btn small" data-id="${item.id}">Add to Cart</button></article>`;
+              const stockText = item.quantity > 0 ? `${item.quantity} available` : "Out of stock";
+              return `<article class="product-card strain-card"><div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${item.image}" alt="${item.name} strain" /></div><div class="card-top"><span class="badge">${item.strainType}</span><span class="stock-pill">${stockText}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="strain-price-row"><strong>${money(item.price)}</strong><span>${item.potency}</span></div><div class="specs"><span>THC ${item.thc}%</span><span>CBD ${item.cbd}%</span></div><div class="card-order-row"><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" /></label><button class="btn small" data-id="${item.id}">Add to Cart</button></div></article>`;
             }).join("")
           : "<div class=\"state-card glass\">No strains are currently available.</div>";
       }
@@ -196,7 +201,7 @@
         const item = inventory.find(strain => strain.id === id || strain._id === id);
         if (!item) return;
         const quantity = Number(document.getElementById(`qty-${id}`).value);
-        cart.push({ productId: id, inventoryId: item._id, name: item.name, price: eighthPrice, quantity });
+        cart.push({ productId: id, inventoryId: item._id, name: item.name, price: item.price, quantity });
         renderCart();
         event.target.textContent = "Added";
         window.setTimeout(() => {

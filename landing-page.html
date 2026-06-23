@@ -8,17 +8,21 @@
   </head>
   <body>
     <div class="smoke-layer" aria-hidden="true"></div>
-    <main class="qr-landing link-landing">
+    <main class="qr-landing link-landing modern-pay-page">
       <section class="link-landing-panel">
         <div class="link-logo-card">
           <img class="link-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" />
         </div>
+        <p class="eyebrow">Secure Counter Payment</p>
         <h1>Da Candy Shop</h1>
-        <p>Payment Options</p>
+        <p>Enter the amount from the counter and choose your payment lane.</p>
         <form id="qrStripePayment" class="qr-stripe-form" aria-label="Pay with Stripe">
-          <img src="assets/logos/stripe.png" alt="Stripe" />
+          <div class="payment-form-head">
+            <img src="assets/logos/stripe.png" alt="Stripe" />
+            <span>Card checkout</span>
+          </div>
           <label>Amount
-            <input name="amount" type="number" min="10" max="10" step="0.01" inputmode="decimal" value="10.00" readonly required />
+            <input name="amount" type="number" min="0.01" step="0.01" inputmode="decimal" value="10.00" required />
           </label>
           <label>Name
             <input name="customerName" autocomplete="name" placeholder="Name or initials" />
@@ -67,8 +71,8 @@
         const data = Object.fromEntries(new FormData(paymentForm));
         const amount = Number(data.amount);
 
-        if (!Number.isFinite(amount) || amount !== 10) {
-          paymentMessage.textContent = "Amount must be $10.00.";
+        if (!Number.isFinite(amount) || amount <= 0) {
+          paymentMessage.textContent = "Amount must be greater than $0.00.";
           return;
         }
 
