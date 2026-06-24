@@ -163,8 +163,18 @@
         return payload;
       }
       function savedOrderId(saved) {
-        const order = typeof saved === "string" ? JSON.parse(saved) : saved;
+        const order = savedOrder(saved);
+        if (typeof order === "string") return order;
         return order?.orderId || order?.id || order?._id || null;
+      }
+      function savedOrder(saved) {
+        if (typeof saved !== "string") return saved;
+
+        try {
+          return JSON.parse(saved);
+        } catch (_) {
+          return saved;
+        }
       }
       async function loadInventory() {
         try {
@@ -241,7 +251,13 @@
         const data = Object.fromEntries(new FormData(flowerCheckout));
         const payOnline = data.paymentMethod === "stripe";
         const total = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
-        const pricedCart = cart.map(item => ({ ...item, price: itemPrice(item) }));
+        const pricedCart = cart.map(item => ({
+          productId: item.productId,
+          inventoryId: item.inventoryId,
+          name: item.name,
+          price: itemPrice(item),
+          quantity: item.quantity
+        }));
         const orderInput = { customerName: `${data.firstName} ${data.lastName}`, phone: data.phone, pickupDate: data.pickupDate, pickupTime: data.pickupTime, items: pricedCart, total, paymentMethod: data.paymentMethod };
         let orderNumber = `DCS-${Number(localStorage.getItem("dcsOrderSeed") || 100000) + 1}`;
         let orderId = null;
@@ -251,14 +267,14 @@
         try {
           const saved = await convexCall("mutation", "orders:createOrder", orderInput);
           orderId = savedOrderId(saved);
-          const savedOrder = typeof saved === "string" ? JSON.parse(saved) : saved;
-          if (savedOrder?.orderNumber) orderNumber = savedOrder.orderNumber;
+          const savedOrderDetails = savedOrder(saved);
+          if (savedOrderDetails?.orderNumber) orderNumber = savedOrderDetails.orderNumber;
           if (payOnline && !orderId) throw new Error("The order was saved, but Convex did not return its checkout ID.");
         } catch (error) {
           console.warn(error);
           submitButton.disabled = false;
           submitButton.textContent = "Place Order";
-          return alert("We could not save your order. Please try again.");
+          return alert(`We could not save your order. ${error.message || "Please try again."}`);
         }
         if (payOnline) {
           try {
