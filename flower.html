@@ -83,19 +83,26 @@
     <script src="age-gate.js"></script>
     <script src="flower-promo.js"></script>
     <script type="module">
-      const eighthPrice = 10;
       const strainImages = ["weed-1.avif","weed-2.avif","weed-3.avif","weed-4.avif","weed-5.avif","weed-6.avif","weed-7.avif","weed-8.avif","weed-9.avif"].map(name => `assets/images/${name}`);
       const fallback = [
-        ["Blue Dream","Hybrid","High",24,1,"Berry-forward balanced hybrid.",98],["Runtz","Hybrid","High",27,1,"Sweet candy notes.",100],
-        ["Gelato","Hybrid","High",25,1,"Creamy dessert aroma.",92],["Wedding Cake","Indica","High",28,1,"Dense dessert-forward flower.",95],
-        ["OG Kush","Indica","High",23,1,"Classic earthy fuel.",88],["Sour Diesel","Sativa","High",22,0,"Bright pungent sativa.",84],
-        ["White Widow","Hybrid","Medium",19,1,"Old-school balance.",76],["Purple Haze","Sativa","Medium",20,1,"Floral grape notes.",81],
-        ["Pineapple Express","Hybrid","Medium",21,1,"Tropical hybrid.",86],["Northern Lights","Indica","High",24,1,"Calming pine classic.",90],
-        ["Granddaddy Purple","Indica","High",25,1,"Purple grape notes.",91],["Gorilla Glue","Hybrid","High",29,1,"Resin-heavy potency.",97]
-      ].map((s, i) => ({ id: String(i + 1), name: s[0], strainType: s[1], potency: s[2], thc: s[3], cbd: s[4], description: s[5], price: eighthPrice, popularity: s[6], image: strainImages[i % strainImages.length] }));
+        ["Purple Planet",20,"Hybrid","High","Fresh flower from the current shelf.",98],
+        ["Biscotti",20,"Indica","High","Fresh flower from the current shelf.",97],
+        ["Blueberry",20,"Indica","High","Fresh flower from the current shelf.",96],
+        ["Couchlock Candy",25,"Indica","High","Fresh flower from the current shelf.",100],
+        ["LFG",25,"Hybrid","High","Fresh flower from the current shelf.",99],
+        ["Russian Runtz",25,"Hybrid","High","Fresh flower from the current shelf.",98],
+        ["Gelato 41",25,"Hybrid","High","Fresh flower from the current shelf.",97],
+        ["Gruntz",25,"Hybrid","High","Fresh flower from the current shelf.",96],
+        ["Papaya Runtz",15,"Hybrid","High","Fresh flower from the current shelf.",95],
+        ["Strawberry Cough",15,"Sativa","High","Fresh flower from the current shelf.",94],
+        ["Pink Candy",10,"Hybrid","Medium","Fresh flower from the current shelf.",93]
+      ].map((s, i) => ({ id: String(i + 1), name: s[0], price: s[1], onlinePrice: s[1], strainType: s[2], potency: s[3], description: s[4], popularity: s[5], available: true, image: strainImages[i % strainImages.length] }));
       const cart = [];
       let inventory = fallback;
       const money = value => `$${Number(value).toFixed(2)}`;
+      const potencyRank = value => ({ Low: 1, Medium: 2, High: 3 })[value] || 0;
+      const selectedPaymentMethod = () => flowerCheckout.paymentMethod.value;
+      const itemPrice = item => selectedPaymentMethod() === "stripe" ? Number(item.onlinePrice ?? item.price) : Number(item.price);
       const convexUrl = () => window.DCS_CONVEX_URL || localStorage.getItem("DCS_CONVEX_URL") || "";
       const stripeCheckoutUrl = () => window.DCS_STRIPE_CHECKOUT_API_URL || localStorage.getItem("DCS_STRIPE_CHECKOUT_API_URL") || "";
       function formatPickupOption(hour, minute) {
@@ -139,21 +146,14 @@
         const payload = await response.json();
         return payload.value;
       }
-      async function createStripeCheckoutSession(orderId, items) {
+      async function createStripeCheckoutSession(orderId) {
         const base = stripeCheckoutUrl();
         if (!base) throw new Error("Stripe checkout URL is not configured.");
 
         const response = await fetch(base, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderId,
-            items: items.map(item => ({
-              name: item.name,
-              price: item.price,
-              quantity: item.quantity
-            }))
-          })
+          body: JSON.stringify({ orderId })
         });
 
         const payload = await response.json().catch(() => ({}));
@@ -167,6 +167,9 @@
             inventory = live.map((item, index) => ({
               ...item,
               id: item._id,
+              price: Number(item.price || 0),
+              onlinePrice: Number(item.onlinePrice ?? item.price ?? 0),
+              available: item.available ?? Number(item.quantity ?? 0) > 0,
               image: item.image || strainImages[index % strainImages.length],
               popularity: item.popularity || 0
             }));
@@ -177,9 +180,9 @@
         render();
       }
       function renderCart() {
-        const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const total = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
         const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-        flowerCart.innerHTML = cart.length ? cart.map((item, index) => `<div class="cart-line"><span>${item.name} <small>x ${item.quantity}</small></span><strong>${money(item.price * item.quantity)}</strong><button type="button" data-remove="${index}">Remove</button></div>`).join("") : "<p>Your candy bag is empty.</p>";
+        flowerCart.innerHTML = cart.length ? cart.map((item, index) => `<div class="cart-line"><span>${item.name} <small>x ${item.quantity}</small></span><strong>${money(itemPrice(item) * item.quantity)}</strong><button type="button" data-remove="${index}">Remove</button></div>`).join("") : "<p>Your candy bag is empty.</p>";
         flowerTotal.textContent = money(total);
         headerCartCount.textContent = count;
         headerCart.setAttribute("aria-label", count ? `View checkout cart, ${count} item${count === 1 ? "" : "s"}` : "View checkout cart");
@@ -187,11 +190,13 @@
       function render() {
         const search = flowerSearch.value.toLowerCase();
         let rows = inventory.filter(item => item.name.toLowerCase().includes(search) && (!flowerType.value || item.strainType === flowerType.value));
-        rows.sort((a,b) => flowerSort.value === "potency" ? b.thc - a.thc : flowerSort.value === "low" ? a.price - b.price : flowerSort.value === "high" ? b.price - a.price : (b.popularity || 0) - (a.popularity || 0));
+        rows.sort((a,b) => flowerSort.value === "potency" ? potencyRank(b.potency) - potencyRank(a.potency) : flowerSort.value === "low" ? a.price - b.price : flowerSort.value === "high" ? b.price - a.price : (b.popularity || 0) - (a.popularity || 0));
         flowerGrid.innerHTML = rows.length
           ? rows.map(item => {
-              const stockText = item.quantity > 0 ? `${item.quantity} available` : "Out of stock";
-              return `<article class="product-card strain-card"><div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${item.image}" alt="${item.name} strain" /></div><div class="card-top"><span class="badge">${item.strainType}</span><span class="stock-pill">${stockText}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="strain-price-row"><strong>${money(item.price)}</strong><span>${item.potency}</span></div><div class="specs"><span>THC ${item.thc}%</span><span>CBD ${item.cbd}%</span></div><div class="card-order-row"><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" /></label><button class="btn small" data-id="${item.id}">Add to Cart</button></div></article>`;
+              const isAvailable = item.available ?? Number(item.quantity ?? 0) > 0;
+              const stockText = isAvailable ? "Available" : "Not Available";
+              const onlineLabel = Number(item.onlinePrice ?? item.price) === Number(item.price) ? "" : `<span>Online ${money(item.onlinePrice)}</span>`;
+              return `<article class="product-card strain-card"><div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${item.image}" alt="${item.name} strain" /></div><div class="card-top"><span class="badge">${item.strainType}</span><span class="stock-pill">${stockText}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="strain-price-row"><strong>Pickup ${money(item.price)}</strong>${onlineLabel || `<span>${item.potency}</span>`}</div><div class="specs"><span>${item.potency} Potency</span></div><div class="card-order-row"><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" ${isAvailable ? "" : "disabled"} /></label><button class="btn small" data-id="${item.id}" ${isAvailable ? "" : "disabled"}>${isAvailable ? "Add to Cart" : "Unavailable"}</button></div></article>`;
             }).join("")
           : "<div class=\"state-card glass\">No strains are currently available.</div>";
       }
@@ -200,8 +205,9 @@
         if (!id) return;
         const item = inventory.find(strain => strain.id === id || strain._id === id);
         if (!item) return;
+        if ((item.available ?? Number(item.quantity ?? 0) > 0) === false) return alert(`${item.name} is not available.`);
         const quantity = Number(document.getElementById(`qty-${id}`).value);
-        cart.push({ productId: id, inventoryId: item._id, name: item.name, price: item.price, quantity });
+        cart.push({ productId: id, inventoryId: item._id, name: item.name, price: item.price, onlinePrice: item.onlinePrice ?? item.price, quantity });
         renderCart();
         event.target.textContent = "Added";
         window.setTimeout(() => {
@@ -220,6 +226,7 @@
       flowerCheckout.paymentMethod.forEach(input => {
         input.addEventListener("change", () => {
           paymentNote.textContent = input.value === "stripe" && input.checked ? "Secure Online Payment" : "Payment Due At Pickup";
+          renderCart();
         });
       });
       flowerCheckout.addEventListener("submit", async event => {
@@ -227,8 +234,9 @@
         if (!cart.length) return alert("Add at least one strain before placing an order.");
         const data = Object.fromEntries(new FormData(flowerCheckout));
         const payOnline = data.paymentMethod === "stripe";
-        const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        const orderInput = { customerName: `${data.firstName} ${data.lastName}`, phone: data.phone, pickupDate: data.pickupDate, pickupTime: data.pickupTime, items: [...cart], total, paymentMethod: data.paymentMethod };
+        const total = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
+        const pricedCart = cart.map(item => ({ ...item, price: itemPrice(item) }));
+        const orderInput = { customerName: `${data.firstName} ${data.lastName}`, phone: data.phone, pickupDate: data.pickupDate, pickupTime: data.pickupTime, items: pricedCart, total, paymentMethod: data.paymentMethod };
         let orderNumber = `DCS-${Number(localStorage.getItem("dcsOrderSeed") || 100000) + 1}`;
         let orderId = null;
         const submitButton = flowerCheckout.querySelector("button[type='submit']");
@@ -246,7 +254,7 @@
         }
         if (payOnline) {
           try {
-            const session = await createStripeCheckoutSession(orderId, cart);
+            const session = await createStripeCheckoutSession(orderId);
             if (!session.url) throw new Error("Stripe did not return a checkout URL.");
             window.location.href = session.url;
             return;
