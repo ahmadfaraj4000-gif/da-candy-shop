@@ -136,7 +136,7 @@
       }
       async function convexCall(kind, path, args) {
         const base = convexUrl();
-        if (!base) return null;
+        if (!base) throw new Error("Convex URL is not configured.");
         const response = await fetch(`${base.replace(/\/$/, "")}/api/${kind}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -144,6 +144,7 @@
         });
         if (!response.ok) throw new Error("Convex request failed");
         const payload = await response.json();
+        if (payload.status === "error") throw new Error(payload.errorMessage || "Convex request failed");
         return payload.value;
       }
       async function createStripeCheckoutSession(orderId) {
@@ -162,7 +163,8 @@
         return payload;
       }
       function savedOrderId(saved) {
-        return saved?.orderId || saved?.id || saved?._id || null;
+        const order = typeof saved === "string" ? JSON.parse(saved) : saved;
+        return order?.orderId || order?.id || order?._id || null;
       }
       async function loadInventory() {
         try {
@@ -249,7 +251,9 @@
         try {
           const saved = await convexCall("mutation", "orders:createOrder", orderInput);
           orderId = savedOrderId(saved);
-          if (saved?.orderNumber) orderNumber = saved.orderNumber;
+          const savedOrder = typeof saved === "string" ? JSON.parse(saved) : saved;
+          if (savedOrder?.orderNumber) orderNumber = savedOrder.orderNumber;
+          if (payOnline && !orderId) throw new Error("The order was saved, but Convex did not return its checkout ID.");
         } catch (error) {
           console.warn(error);
           submitButton.disabled = false;
