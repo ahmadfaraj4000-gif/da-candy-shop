@@ -3147,6 +3147,32 @@ textarea {
   background: rgba(255,255,255,.035);
 }
 
+.pickup-panel .payment-choice {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .65rem;
+  padding: .85rem;
+}
+
+.pickup-panel .payment-choice legend {
+  grid-column: 1 / -1;
+  padding: 0;
+}
+
+.pickup-panel .payment-choice label {
+  min-height: 58px;
+  margin: 0;
+  padding: .75rem;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px;
+  background: rgba(0,0,0,.18);
+}
+
+.pickup-panel .payment-choice input {
+  min-height: auto;
+}
+
 .payment-due {
   width: fit-content;
   margin: 0;
@@ -3215,6 +3241,10 @@ textarea {
 
   .order-summary {
     grid-column: auto;
+  }
+
+  .pickup-panel .payment-choice {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -3302,6 +3332,38 @@ textarea {
 
   .link-button-stack {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Two-option payment layout after PayPal removal. */
+.payment-section .payment-grid {
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  justify-self: center;
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+.payment-section .qr-card {
+  min-height: clamp(180px, 22vw, 260px);
+}
+
+.link-button-stack {
+  grid-template-columns: minmax(180px, 260px);
+  justify-content: center;
+  justify-items: stretch;
+  width: 100%;
+}
+
+.link-button-stack .link-payment-button {
+  width: 100%;
+  min-height: clamp(170px, 34vw, 240px);
+}
+
+@media (max-width: 560px) {
+  .payment-section .payment-grid,
+  .link-button-stack {
+    grid-template-columns: 1fr;
   }
 }
 

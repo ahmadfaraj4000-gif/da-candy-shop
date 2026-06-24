@@ -5,6 +5,10 @@
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
   let index = 0;
+  slides.forEach((slide, slideIndex) => {
+    slide.classList.toggle("active", slideIndex === index);
+  });
+
   window.setInterval(() => {
     slides[index].classList.remove("active");
     index = (index + 1) % slides.length;
