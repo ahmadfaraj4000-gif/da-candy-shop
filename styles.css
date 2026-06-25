@@ -2901,7 +2901,8 @@ blockquote,
 }
 
 .promo-wheel-label-good {
-  font-size: 14px;
+  font-size: 7.3px;
+  letter-spacing: .03em;
 }
 
 .promo-wheel-label-discount {

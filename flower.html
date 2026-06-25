@@ -54,7 +54,7 @@
                   <circle class="promo-wheel-rim" cx="100" cy="100" r="92" />
                   <circle class="promo-wheel-inner-ring" cx="100" cy="100" r="45" />
                   <circle class="promo-wheel-center" cx="100" cy="100" r="23" />
-                  <text class="promo-wheel-label promo-wheel-label-good" x="129" y="49.8"><tspan x="129" dy="0">Good</tspan><tspan x="129" dy="15">Luck</tspan></text>
+                  <text class="promo-wheel-label promo-wheel-label-good" x="129" y="47"><tspan x="129" dy="0">Good</tspan><tspan x="129" dy="10">Luck</tspan><tspan x="129" dy="10">Next Time</tspan></text>
                   <text class="promo-wheel-label promo-wheel-label-discount" x="158" y="100">10% Off</text>
                   <text class="promo-wheel-label promo-wheel-label-free" x="129" y="150.2"><tspan x="129" dy="0">Free</tspan><tspan x="129" dy="15">1g</tspan></text>
                   <text class="promo-wheel-label promo-wheel-label-fifty" x="71" y="150.2">50%</text>
@@ -119,6 +119,7 @@
       window.DCS_CONVEX_URL = "https://opulent-panda-156.convex.cloud";
       window.DCS_STRIPE_CHECKOUT_API_URL = "https://opulent-panda-156.convex.site/create-checkout-session";
       window.DCS_PROMO_SPIN_API_URL = "https://opulent-panda-156.convex.site/promo-spin";
+      window.DCS_PROMO_SPIN_STATUS_API_URL = "https://opulent-panda-156.convex.site/promo-spin-status";
     </script>
     <script src="nav.js"></script>
     <script src="age-gate.js"></script>
@@ -147,6 +148,7 @@
       const convexUrl = () => window.DCS_CONVEX_URL || localStorage.getItem("DCS_CONVEX_URL") || "";
       const stripeCheckoutUrl = () => window.DCS_STRIPE_CHECKOUT_API_URL || localStorage.getItem("DCS_STRIPE_CHECKOUT_API_URL") || "";
       const promoSpinUrl = () => window.DCS_PROMO_SPIN_API_URL || localStorage.getItem("DCS_PROMO_SPIN_API_URL") || "";
+      const promoSpinStatusUrl = () => window.DCS_PROMO_SPIN_STATUS_API_URL || localStorage.getItem("DCS_PROMO_SPIN_STATUS_API_URL") || "";
       let activePromo = null;
       const orderPopup = document.getElementById("orderPopup");
       const orderPopupEyebrow = document.getElementById("orderPopupEyebrow");
@@ -165,6 +167,15 @@
         orderPopupEyebrow.textContent = eyebrow;
         orderPopupTitle.textContent = title;
         orderPopupNumber.textContent = orderNumber;
+        orderPopupNumber.classList.remove("hidden");
+        orderPopupMessage.textContent = message;
+        orderPopup.classList.remove("hidden");
+      }
+      function showFlowerPopup({ eyebrow = "Heads Up", title, message }) {
+        orderPopupEyebrow.textContent = eyebrow;
+        orderPopupTitle.textContent = title;
+        orderPopupNumber.textContent = "";
+        orderPopupNumber.classList.add("hidden");
         orderPopupMessage.textContent = message;
         orderPopup.classList.remove("hidden");
       }
@@ -193,6 +204,48 @@
         localStorage.setItem("dcsPromoSpinWeek", promoWeekKey());
         promoSpinButton.disabled = true;
         promoSpinMessage.textContent = message;
+      }
+      function promoLockMessage(result) {
+        if (!result?.redeemed && result?.prize && result.prize !== "good_luck") {
+          return `You already won ${result.label} this week. Place an order to claim it.`;
+        }
+        if (result?.redeemed) return "You already used this week's spin. Try again next week.";
+        return "You already spun this week. Try again next week.";
+      }
+      async function checkPromoSpinStatus() {
+        const base = promoSpinStatusUrl();
+        if (!base) return;
+        const wasLocked = promoSpinButton.disabled;
+
+        promoSpinButton.disabled = true;
+        if (!wasLocked) promoSpinMessage.textContent = "Checking your weekly spin...";
+
+        try {
+          const response = await fetch(base, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deviceKey: promoDeviceId() })
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(result.error || "Spin status failed.");
+
+          if (!result.eligible) {
+            if (result.prize && result.prize !== "good_luck" && !result.redeemed) setActivePromo(result);
+            lockPromoSpin(promoLockMessage(result));
+            return;
+          }
+
+          if (!wasLocked) {
+            promoSpinButton.disabled = false;
+            promoSpinMessage.textContent = "Wins attach to your order number automatically.";
+          }
+        } catch (error) {
+          console.warn(error);
+          if (!wasLocked) {
+            promoSpinButton.disabled = false;
+            promoSpinMessage.textContent = "Wins attach to your order number automatically.";
+          }
+        }
       }
       function setActivePromo(promo) {
         activePromo = promo && promo.prize !== "good_luck" && !promo.redeemed ? promo : null;
@@ -386,7 +439,12 @@
         if (!id) return;
         const item = inventory.find(strain => strain.id === id || strain._id === id);
         if (!item) return;
-        if ((item.available ?? Number(item.quantity ?? 0) > 0) === false) return alert(`${item.name} is not available.`);
+        if ((item.available ?? Number(item.quantity ?? 0) > 0) === false) {
+          return showFlowerPopup({
+            title: "Not Available",
+            message: `${item.name} is not available right now.`
+          });
+        }
         const quantity = Number(document.getElementById(`qty-${id}`).value);
         cart.push({ productId: id, inventoryId: item._id, name: item.name, price: item.price, onlinePrice: item.onlinePrice ?? item.price, quantity });
         renderCart();
@@ -411,7 +469,12 @@
       });
       promoSpinButton.addEventListener("click", async () => {
         const base = promoSpinUrl();
-        if (!base) return alert("Promo spinner is not configured.");
+        if (!base) {
+          return showFlowerPopup({
+            title: "Spinner Unavailable",
+            message: "The promo spinner is not configured right now."
+          });
+        }
 
         promoSpinButton.disabled = true;
         promoSpinButton.textContent = "Spinning...";
@@ -433,11 +496,7 @@
 
           window.setTimeout(() => {
             if (!result.eligible) {
-              promoSpinMessage.textContent = !result.redeemed && result.prize !== "good_luck"
-                ? `You already won ${result.label} this week. Place an order to claim it.`
-                : result.redeemed
-                ? "You already used this week's spin. Try again next week."
-                : "You already spun this week. Try again next week.";
+              promoSpinMessage.textContent = promoLockMessage(result);
             } else if (result.prize === "good_luck") {
               promoSpinMessage.textContent = "Good luck next time. You can spin again next week.";
             } else {
@@ -464,9 +523,19 @@
       pickupDateInput.addEventListener("change", refreshPickupControls);
       flowerCheckout.addEventListener("submit", async event => {
         event.preventDefault();
-        if (!cart.length) return alert("Add at least one strain before placing an order.");
+        if (!cart.length) {
+          return showFlowerPopup({
+            title: "Add Flower First",
+            message: "Add at least one strain before placing an order."
+          });
+        }
         const pickupError = validatePickupDateTime();
-        if (pickupError) return alert(pickupError);
+        if (pickupError) {
+          return showFlowerPopup({
+            title: "Choose A Valid Pickup Time",
+            message: pickupError
+          });
+        }
         const data = Object.fromEntries(new FormData(flowerCheckout));
         const payOnline = data.paymentMethod === "stripe";
         const subtotal = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
@@ -503,7 +572,11 @@
           console.warn(error);
           submitButton.disabled = false;
           submitButton.textContent = "Place Order";
-          return alert(`We could not save your order. ${error.message || "Please try again."}`);
+          return showFlowerPopup({
+            eyebrow: "Order Not Saved",
+            title: "Try Again",
+            message: `We could not save your order. ${error.message || "Please try again."}`
+          });
         }
         if (payOnline) {
           try {
@@ -515,7 +588,11 @@
             console.warn(error);
             submitButton.disabled = false;
             submitButton.textContent = "Place Order";
-            return alert(`Stripe checkout could not be started. ${error.message || "Please try again."}`);
+            return showFlowerPopup({
+              eyebrow: "Checkout Error",
+              title: "Stripe Could Not Start",
+              message: `Stripe checkout could not be started. ${error.message || "Please try again."}`
+            });
           }
         }
         localStorage.setItem("dcsOrderSeed", orderNumber.replace("DCS-", ""));
@@ -578,6 +655,7 @@
       } else if (localStorage.getItem("dcsPromoSpinWeek") === promoWeekKey()) {
         lockPromoSpin();
       }
+      checkPromoSpinStatus();
       refreshPickupControls();
       renderCart();
       loadInventory();
