@@ -40,7 +40,7 @@
           <div class="promo-spinner" aria-live="polite">
             <div class="promo-spinner-copy">
               <strong>Spin to win</strong>
-              <span>Chance to win Free 1g, 10% off, 50% off, Free 1/8th, or the mythical 100% off. Purchase required. One spin per week.</span>
+              <span>Chance to win Free 1g, 10% off, 50% off, Free 1/8th, or the mythical 100% off. Purchase required to claim any reward. One spin per phone number per week.</span>
             </div>
             <div class="promo-wheel-wrap">
               <div id="promoWheel" class="promo-wheel">
@@ -88,6 +88,7 @@
               <label><input type="radio" name="paymentMethod" value="pay_at_store" checked /> Pay at the store</label>
               <label><input type="radio" name="paymentMethod" value="stripe" /> Pay online</label>
             </fieldset>
+            <label>Discount Code <input name="discountCode" autocomplete="off" placeholder="Optional" /></label>
             <p id="paymentNote" class="payment-due">Payment Due At Pickup</p>
           </div>
           <div class="order-summary checkout-panel">
@@ -214,10 +215,15 @@
 
         return stableHash(browserData);
       }
+      function normalizedPhoneKey() {
+        const digits = String(flowerCheckout.elements.phone.value || "").replace(/\D/g, "");
+        return digits.length >= 7 ? stableHash(digits) : "";
+      }
       function promoRequestBody() {
         return JSON.stringify({
           deviceKey: promoDeviceId(),
-          browserKey: promoBrowserKey()
+          browserKey: promoBrowserKey(),
+          phoneKey: normalizedPhoneKey()
         });
       }
       function savedPromo() {
@@ -301,11 +307,11 @@
       }
       function promoNote() {
         if (!activePromo) return "";
-        if (activePromo.prize === "free_1g") return "Promo attached: Free 1g with purchase";
-        if (activePromo.prize === "free_eighth") return "Promo attached: Free 1/8th with purchase";
-        if (activePromo.prize === "ten_percent") return "Promo attached: 10% off this order";
-        if (activePromo.prize === "fifty_percent") return "Promo attached: 50% off this order";
-        if (activePromo.prize === "hundred_percent") return "Promo attached: 100% off this order";
+        if (activePromo.prize === "free_1g") return "Promo attached: Free 1g with completed purchase";
+        if (activePromo.prize === "free_eighth") return "Promo attached: Free 1/8th with completed purchase";
+        if (activePromo.prize === "ten_percent") return "Promo attached: 10% off with completed purchase";
+        if (activePromo.prize === "fifty_percent") return "Promo attached: 50% off with completed purchase";
+        if (activePromo.prize === "hundred_percent") return "Promo attached: 100% off with completed purchase";
         return "";
       }
       function spinSegmentIndex(prize) {
@@ -548,6 +554,13 @@
             message: "The promo spinner is not configured right now."
           });
         }
+        if (!normalizedPhoneKey()) {
+          document.getElementById("checkout").scrollIntoView({ behavior: "smooth" });
+          return showFlowerPopup({
+            title: "Enter Phone First",
+            message: "Enter your phone number in checkout before spinning. Rewards require a completed purchase to claim."
+          });
+        }
 
         promoSpinButton.disabled = true;
         promoSpinButton.textContent = "Spinning...";
@@ -568,11 +581,11 @@
 
           if (!result.eligible) {
             promoSpinMessage.textContent = promoLockMessage(result);
-          } else if (result.prize === "good_luck") {
-            promoSpinMessage.textContent = "Good luck next time. You can spin again next week.";
-          } else {
-            promoSpinMessage.textContent = `${result.label} won. Add items and place an order to claim it.`;
-          }
+            } else if (result.prize === "good_luck") {
+              promoSpinMessage.textContent = "Good luck next time. You can spin again next week.";
+            } else {
+              promoSpinMessage.textContent = `${result.label} won. Complete a purchase to claim it.`;
+            }
 
           setActivePromo(result);
           promoSpinButton.textContent = "Spin";
@@ -589,6 +602,9 @@
           paymentNote.textContent = input.value === "stripe" && input.checked ? "Secure Online Payment" : "Payment Due At Pickup";
           renderCart();
         });
+      });
+      flowerCheckout.elements.phone.addEventListener("change", () => {
+        if (normalizedPhoneKey()) checkPromoSpinStatus();
       });
       pickupDateInput.addEventListener("change", refreshPickupControls);
       flowerCheckout.addEventListener("submit", async event => {
@@ -607,6 +623,12 @@
           });
         }
         const data = Object.fromEntries(new FormData(flowerCheckout));
+        if (activePromo && data.discountCode?.trim()) {
+          return showFlowerPopup({
+            title: "One Reward Per Order",
+            message: "Use either your spin reward or a discount code, not both."
+          });
+        }
         const payOnline = data.paymentMethod === "stripe";
         const subtotal = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
         const total = Math.max(0, subtotal - promoDiscount(subtotal));
@@ -625,10 +647,13 @@
           items: pricedCart,
           total,
           paymentMethod: data.paymentMethod,
-          promoSpinId: activePromo?.spinId
+          promoSpinId: activePromo?.spinId,
+          discountCode: activePromo ? undefined : String(data.discountCode || "").trim()
         };
         let orderNumber = `DCS-${Number(localStorage.getItem("dcsOrderSeed") || 100000) + 1}`;
         let orderId = null;
+        let confirmedTotal = total;
+        let confirmedPromo = activePromo;
         const submitButton = flowerCheckout.querySelector("button[type='submit']");
         submitButton.disabled = true;
         submitButton.textContent = payOnline ? "Opening Stripe..." : "Placing Order...";
@@ -637,6 +662,8 @@
           orderId = savedOrderId(saved);
           const savedOrderDetails = savedOrder(saved);
           if (savedOrderDetails?.orderNumber) orderNumber = savedOrderDetails.orderNumber;
+          if (typeof savedOrderDetails?.total === "number") confirmedTotal = savedOrderDetails.total;
+          if (savedOrderDetails?.promo) confirmedPromo = savedOrderDetails.promo;
           if (payOnline && !orderId) throw new Error("The order was saved, but Convex did not return its checkout ID.");
         } catch (error) {
           console.warn(error);
@@ -667,12 +694,12 @@
         }
         localStorage.setItem("dcsOrderSeed", orderNumber.replace("DCS-", ""));
         flowerConfirmation.classList.remove("hidden");
-        flowerConfirmation.innerHTML = `<h2>Sweet, You're Set</h2><h3>${orderNumber}</h3><p>Pickup Time: ${data.pickupDate} at ${data.pickupTime}</p><p>Payment: Pay at the store</p>${activePromo ? `<p>${promoNote()}</p>` : ""}${cart.map(item => `<p>${item.name} x ${item.quantity}</p>`).join("")}<strong>Total: ${money(total)}</strong>`;
+        flowerConfirmation.innerHTML = `<h2>Sweet, You're Set</h2><h3>${orderNumber}</h3><p>Pickup Time: ${data.pickupDate} at ${data.pickupTime}</p><p>Payment: Pay at the store</p>${confirmedPromo ? `<p>${confirmedPromo.label}</p>` : ""}${cart.map(item => `<p>${item.name} x ${item.quantity}</p>`).join("")}<strong>Total: ${money(confirmedTotal)}</strong>`;
         showOrderPopup({
           eyebrow: "Pickup Order Saved",
           title: "Save Your Order Number",
           orderNumber,
-          message: activePromo ? `${promoNote()}. Save this order number and show it at pickup.` : "Take a screenshot or write this down. Show this order number when you pick up and pay at the store."
+          message: confirmedPromo ? `${confirmedPromo.label}. You chose pay at the store, so the reward is valid after you complete the pickup purchase.` : "Take a screenshot or write this down. Show this order number when you pick up and pay at the store."
         });
         setActivePromo(null);
         cart.length = 0;
