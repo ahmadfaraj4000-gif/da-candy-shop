@@ -187,6 +187,39 @@
         localStorage.setItem("dcsPromoDeviceId", next);
         return next;
       }
+      function stableHash(value) {
+        let hash = 5381;
+        for (let index = 0; index < value.length; index += 1) {
+          hash = (hash * 33) ^ value.charCodeAt(index);
+        }
+
+        return (hash >>> 0).toString(36);
+      }
+      function promoBrowserKey() {
+        const screenData = window.screen
+          ? `${screen.width}x${screen.height}x${screen.colorDepth}x${screen.pixelDepth}`
+          : "";
+        const browserData = [
+          navigator.userAgent,
+          navigator.language,
+          (navigator.languages || []).join(","),
+          navigator.platform,
+          navigator.hardwareConcurrency || "",
+          navigator.deviceMemory || "",
+          navigator.maxTouchPoints || "",
+          Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+          screenData,
+          window.devicePixelRatio || ""
+        ].join("|");
+
+        return stableHash(browserData);
+      }
+      function promoRequestBody() {
+        return JSON.stringify({
+          deviceKey: promoDeviceId(),
+          browserKey: promoBrowserKey()
+        });
+      }
       function savedPromo() {
         try {
           return JSON.parse(localStorage.getItem("dcsActivePromo") || "null");
@@ -224,7 +257,7 @@
           const response = await fetch(base, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ deviceKey: promoDeviceId() })
+            body: promoRequestBody()
           });
           const result = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(result.error || "Spin status failed.");
@@ -282,6 +315,32 @@
         if (prize === "free_eighth") return 4;
         if (prize === "hundred_percent") return 5;
         return 0;
+      }
+      let promoWheelRotation = 0;
+      const wait = ms => new Promise(resolve => window.setTimeout(resolve, ms));
+      function setPromoWheelRotation(rotation, duration, easing) {
+        promoWheel.style.transition = duration ? `transform ${duration}ms ${easing}` : "none";
+        promoWheel.style.transform = `rotate(${rotation}deg)`;
+        promoWheelRotation = rotation;
+      }
+      async function animatePromoWheel(prize) {
+        const landingRotation = [330, 270, 210, 150, 90, 30][spinSegmentIndex(prize)];
+        const startRotation = promoWheelRotation % 360;
+        const fastRotation = promoWheelRotation + 2160 + ((360 - startRotation) % 360);
+        const finalRotation = fastRotation + 720 + landingRotation;
+
+        setPromoWheelRotation(fastRotation, 3000, "linear");
+        await wait(3000);
+        setPromoWheelRotation(finalRotation - 78, 900, "cubic-bezier(.18,.72,.22,1)");
+        await wait(900);
+        setPromoWheelRotation(finalRotation + 24, 430, "cubic-bezier(.34,.02,.18,1)");
+        await wait(430);
+        setPromoWheelRotation(finalRotation - 11, 310, "cubic-bezier(.24,.86,.34,1)");
+        await wait(310);
+        setPromoWheelRotation(finalRotation + 4, 190, "cubic-bezier(.2,.72,.28,1)");
+        await wait(190);
+        setPromoWheelRotation(finalRotation, 170, "cubic-bezier(.12,.88,.28,1)");
+        await wait(170);
       }
       function formatPickupOption(hour, minute) {
         const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
@@ -484,29 +543,26 @@
           const response = await fetch(base, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ deviceKey: promoDeviceId() })
+            body: promoRequestBody()
           });
           const result = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(result.error || "Spin failed.");
           localStorage.setItem("dcsPromoSpinWeek", promoWeekKey());
 
-          const landingRotation = [330, 270, 210, 150, 90, 30][spinSegmentIndex(result.prize)];
-          const finalRotation = 1800 + landingRotation;
-          promoWheel.style.transform = `rotate(${finalRotation}deg)`;
+          promoSpinMessage.textContent = "Spinning...";
+          await animatePromoWheel(result.prize);
 
-          window.setTimeout(() => {
-            if (!result.eligible) {
-              promoSpinMessage.textContent = promoLockMessage(result);
-            } else if (result.prize === "good_luck") {
-              promoSpinMessage.textContent = "Good luck next time. You can spin again next week.";
-            } else {
-              promoSpinMessage.textContent = `${result.label} won. Add items and place an order to claim it.`;
-            }
+          if (!result.eligible) {
+            promoSpinMessage.textContent = promoLockMessage(result);
+          } else if (result.prize === "good_luck") {
+            promoSpinMessage.textContent = "Good luck next time. You can spin again next week.";
+          } else {
+            promoSpinMessage.textContent = `${result.label} won. Add items and place an order to claim it.`;
+          }
 
-            setActivePromo(result);
-            promoSpinButton.textContent = "Spin";
-            promoSpinButton.disabled = true;
-          }, 1650);
+          setActivePromo(result);
+          promoSpinButton.textContent = "Spin";
+          promoSpinButton.disabled = true;
         } catch (error) {
           console.warn(error);
           promoSpinMessage.textContent = error.message || "Spin could not be started.";

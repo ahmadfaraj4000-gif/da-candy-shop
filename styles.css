@@ -2830,7 +2830,7 @@ blockquote,
     inset 0 0 0 9px rgba(0,0,0,.3),
     inset 0 0 0 15px rgba(255,255,255,.045),
     0 0 0 5px rgba(255,255,255,.08);
-  transition: transform 1.6s cubic-bezier(.16,.84,.28,1);
+  transition: none;
 }
 
 .promo-wheel svg {
