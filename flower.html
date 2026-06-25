@@ -317,30 +317,44 @@
         return 0;
       }
       let promoWheelRotation = 0;
-      const wait = ms => new Promise(resolve => window.setTimeout(resolve, ms));
-      function setPromoWheelRotation(rotation, duration, easing) {
-        promoWheel.style.transition = duration ? `transform ${duration}ms ${easing}` : "none";
+      function setPromoWheelRotation(rotation) {
+        promoWheel.style.transition = "none";
         promoWheel.style.transform = `rotate(${rotation}deg)`;
         promoWheelRotation = rotation;
       }
+      function easeOutCubic(progress) {
+        return 1 - Math.pow(1 - progress, 3);
+      }
+      function animateRotation(from, to, duration, easing = progress => progress) {
+        return new Promise(resolve => {
+          const startedAt = performance.now();
+
+          function frame(now) {
+            const progress = Math.min(1, (now - startedAt) / duration);
+            setPromoWheelRotation(from + (to - from) * easing(progress));
+
+            if (progress < 1) {
+              requestAnimationFrame(frame);
+            } else {
+              setPromoWheelRotation(to);
+              resolve();
+            }
+          }
+
+          requestAnimationFrame(frame);
+        });
+      }
       async function animatePromoWheel(prize) {
         const landingRotation = [330, 270, 210, 150, 90, 30][spinSegmentIndex(prize)];
-        const startRotation = promoWheelRotation % 360;
-        const fastRotation = promoWheelRotation + 2160 + ((360 - startRotation) % 360);
-        const finalRotation = fastRotation + 720 + landingRotation;
+        const startRotation = promoWheelRotation;
+        const desiredFastEnd = (landingRotation - 120 + 360) % 360;
+        const naturalFastEnd = (startRotation + 2160) % 360;
+        const fastAdjustment = (desiredFastEnd - naturalFastEnd + 360) % 360;
+        const fastRotation = startRotation + 2160 + fastAdjustment;
+        const finalRotation = fastRotation + 480;
 
-        setPromoWheelRotation(fastRotation, 3000, "linear");
-        await wait(3000);
-        setPromoWheelRotation(finalRotation - 78, 900, "cubic-bezier(.18,.72,.22,1)");
-        await wait(900);
-        setPromoWheelRotation(finalRotation + 24, 430, "cubic-bezier(.34,.02,.18,1)");
-        await wait(430);
-        setPromoWheelRotation(finalRotation - 11, 310, "cubic-bezier(.24,.86,.34,1)");
-        await wait(310);
-        setPromoWheelRotation(finalRotation + 4, 190, "cubic-bezier(.2,.72,.28,1)");
-        await wait(190);
-        setPromoWheelRotation(finalRotation, 170, "cubic-bezier(.12,.88,.28,1)");
-        await wait(170);
+        await animateRotation(startRotation, fastRotation, 3000);
+        await animateRotation(fastRotation, finalRotation, 2000, easeOutCubic);
       }
       function formatPickupOption(hour, minute) {
         const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
