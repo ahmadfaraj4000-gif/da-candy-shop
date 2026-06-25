@@ -139,7 +139,7 @@
         ["Papaya Runtz",15,"Hybrid","High","Fresh flower from the current shelf.",95],
         ["Strawberry Cough",15,"Sativa","High","Fresh flower from the current shelf.",94],
         ["Pink Candy",10,"Hybrid","Medium","Fresh flower from the current shelf.",93]
-      ].map((s, i) => ({ id: String(i + 1), name: s[0], price: s[1], onlinePrice: s[1], strainType: s[2], potency: s[3], description: s[4], popularity: s[5], available: true, image: strainImages[i % strainImages.length] }));
+      ].map((s, i) => ({ id: String(i + 1), name: s[0], price: s[1], onlinePrice: s[1], grams: 3.5, strainType: s[2], potency: s[3], description: s[4], popularity: s[5], available: true, image: strainImages[i % strainImages.length] }));
       const cart = [];
       let inventory = fallback;
       const money = value => `$${Number(value).toFixed(2)}`;
@@ -479,6 +479,7 @@
               id: item._id,
               price: Number(item.price || 0),
               onlinePrice: Number(item.onlinePrice ?? item.price ?? 0),
+              grams: Number(item.grams ?? 3.5),
               available: item.available ?? Number(item.quantity ?? 0) > 0,
               image: item.image || strainImages[index % strainImages.length],
               popularity: item.popularity || 0
@@ -495,7 +496,7 @@
         const total = Math.max(0, subtotal - discount);
         const count = cart.reduce((sum, item) => sum + item.quantity, 0);
         const promoLine = activePromo ? `<div class="cart-line promo-cart-line"><span>${promoNote()}</span><strong>${discount ? `-${money(discount)}` : "Added"}</strong></div>` : "";
-        flowerCart.innerHTML = cart.length ? `${cart.map((item, index) => `<div class="cart-line"><span>${item.name} <small>x ${item.quantity}</small></span><strong>${money(itemPrice(item) * item.quantity)}</strong><button type="button" data-remove="${index}">Remove</button></div>`).join("")}${promoLine}` : "<p>Your candy bag is empty.</p>";
+        flowerCart.innerHTML = cart.length ? `${cart.map((item, index) => `<div class="cart-line"><span>${item.name} <small>${Number(item.grams ?? 3.5)}g x ${item.quantity}</small></span><strong>${money(itemPrice(item) * item.quantity)}</strong><button type="button" data-remove="${index}">Remove</button></div>`).join("")}${promoLine}` : "<p>Your candy bag is empty.</p>";
         flowerTotal.textContent = money(total);
         headerCartCount.textContent = count;
         headerCart.setAttribute("aria-label", count ? `View checkout cart, ${count} item${count === 1 ? "" : "s"}` : "View checkout cart");
@@ -509,7 +510,7 @@
               const isAvailable = item.available ?? Number(item.quantity ?? 0) > 0;
               const stockText = isAvailable ? "Available" : "Not Available";
               const onlineLabel = Number(item.onlinePrice ?? item.price) === Number(item.price) ? "" : `<span>Online ${money(item.onlinePrice)}</span>`;
-              return `<article class="product-card strain-card"><div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${item.image}" alt="${item.name} strain" /></div><div class="card-top"><span class="badge">${item.strainType}</span><span class="stock-pill">${stockText}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="strain-price-row"><strong>Pickup ${money(item.price)}</strong>${onlineLabel || `<span>${item.potency}</span>`}</div><div class="specs"><span>${item.potency} Potency</span></div><div class="card-order-row"><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" ${isAvailable ? "" : "disabled"} /></label><button class="btn small" data-id="${item.id}" ${isAvailable ? "" : "disabled"}>${isAvailable ? "Add to Cart" : "Unavailable"}</button></div></article>`;
+              return `<article class="product-card strain-card"><div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${item.image}" alt="${item.name} strain" /></div><div class="card-top"><span class="badge">${item.strainType}</span><span class="stock-pill">${stockText}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="strain-price-row"><strong>Pickup ${money(item.price)}</strong>${onlineLabel || `<span>${item.potency}</span>`}</div><div class="specs"><span>${Number(item.grams ?? 3.5)}g</span><span>${item.potency} Potency</span></div><div class="card-order-row"><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" ${isAvailable ? "" : "disabled"} /></label><button class="btn small" data-id="${item.id}" ${isAvailable ? "" : "disabled"}>${isAvailable ? "Add to Cart" : "Unavailable"}</button></div></article>`;
             }).join("")
           : "<div class=\"state-card glass\">No strains are currently available.</div>";
       }
@@ -525,7 +526,7 @@
           });
         }
         const quantity = Number(document.getElementById(`qty-${id}`).value);
-        cart.push({ productId: id, inventoryId: item._id, name: item.name, price: item.price, onlinePrice: item.onlinePrice ?? item.price, quantity });
+        cart.push({ productId: id, inventoryId: item._id, name: item.name, price: item.price, onlinePrice: item.onlinePrice ?? item.price, grams: Number(item.grams ?? 3.5), quantity });
         renderCart();
         event.target.textContent = "Added";
         window.setTimeout(() => {
@@ -637,6 +638,7 @@
           inventoryId: item.inventoryId,
           name: item.name,
           price: itemPrice(item),
+          grams: Number(item.grams ?? 3.5),
           quantity: item.quantity
         }));
         const orderInput = {
@@ -694,7 +696,7 @@
         }
         localStorage.setItem("dcsOrderSeed", orderNumber.replace("DCS-", ""));
         flowerConfirmation.classList.remove("hidden");
-        flowerConfirmation.innerHTML = `<h2>Sweet, You're Set</h2><h3>${orderNumber}</h3><p>Pickup Time: ${data.pickupDate} at ${data.pickupTime}</p><p>Payment: Pay at the store</p>${confirmedPromo ? `<p>${confirmedPromo.label}</p>` : ""}${cart.map(item => `<p>${item.name} x ${item.quantity}</p>`).join("")}<strong>Total: ${money(confirmedTotal)}</strong>`;
+        flowerConfirmation.innerHTML = `<h2>Sweet, You're Set</h2><h3>${orderNumber}</h3><p>Pickup Time: ${data.pickupDate} at ${data.pickupTime}</p><p>Payment: Pay at the store</p>${confirmedPromo ? `<p>${confirmedPromo.label}</p>` : ""}${cart.map(item => `<p>${item.name} ${Number(item.grams ?? 3.5)}g x ${item.quantity}</p>`).join("")}<strong>Total: ${money(confirmedTotal)}</strong>`;
         showOrderPopup({
           eyebrow: "Pickup Order Saved",
           title: "Save Your Order Number",
