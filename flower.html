@@ -14,7 +14,7 @@
       <nav class="site-nav">
         <a href="index.html">Home</a>
         <a href="flower.html">Flower</a>
-        <a href="clothing.html">Clothing</a>
+        <a href="landing-page.html">In-Store Payment</a>
         <a href="tel:+15107062263">Contact</a>
       </nav>
       <button id="headerCart" class="header-cart" type="button" aria-label="View checkout cart">
@@ -26,13 +26,13 @@
       <section class="section shop-layout flower-menu-shell">
         <div class="section-heading wide">
           <p class="eyebrow">Flower Counter</p>
-          <h1>Live shelf, pickup ready</h1>
-          <p class="tagline">Menu cards mirror the admin inventory, so names, prices, images, and availability stay in step.</p>
+          <h1>Flower Menu</h1>
+          <p class="tagline">Choose your flower and schedule pickup.</p>
         </div>
         <aside class="filter-panel glass">
           <div class="filter-title">
             <span>Browse</span>
-            <strong>Live Menu</strong>
+            <strong>Menu</strong>
           </div>
           <label>Search <input id="flowerSearch" type="search" placeholder="Search strains" /></label>
           <label>Type <select id="flowerType"><option value="">All</option><option>Indica</option><option>Sativa</option><option>Hybrid</option></select></label>
@@ -40,20 +40,26 @@
           <div class="promo-spinner" aria-live="polite">
             <div class="promo-spinner-copy">
               <strong>Spin to win</strong>
-              <span>Chance to win Free 1g or 10% off. Purchase required. One spin per week.</span>
+              <span>Chance to win Free 1g, 10% off, 50% off, Free 1/8th, or the mythical 100% off. Purchase required. One spin per week.</span>
             </div>
             <div class="promo-wheel-wrap">
               <div id="promoWheel" class="promo-wheel">
-                <svg viewBox="0 0 200 200" role="img" aria-label="Prize wheel with Good Luck, 10% Off, and Free 1g sections">
-                  <path class="promo-slice promo-slice-good" d="M100 100 L100 8 A92 92 0 0 1 100 192 Z" />
-                  <path class="promo-slice promo-slice-discount" d="M100 100 L100 192 A92 92 0 0 1 8 100 Z" />
-                  <path class="promo-slice promo-slice-free" d="M100 100 L8 100 A92 92 0 0 1 100 8 Z" />
+                <svg viewBox="0 0 200 200" role="img" aria-label="Prize wheel with Good Luck, 10% Off, Free 1g, 50% Off, Free 1/8th, and 100% Off sections">
+                  <path class="promo-slice promo-slice-good" d="M100 100 L100.00 8.00 A92 92 0 0 1 179.67 54.00 Z" />
+                  <path class="promo-slice promo-slice-discount" d="M100 100 L179.67 54.00 A92 92 0 0 1 179.67 146.00 Z" />
+                  <path class="promo-slice promo-slice-free" d="M100 100 L179.67 146.00 A92 92 0 0 1 100.00 192.00 Z" />
+                  <path class="promo-slice promo-slice-fifty" d="M100 100 L100.00 192.00 A92 92 0 0 1 20.33 146.00 Z" />
+                  <path class="promo-slice promo-slice-eighth" d="M100 100 L20.33 146.00 A92 92 0 0 1 20.33 54.00 Z" />
+                  <path class="promo-slice promo-slice-hundred" d="M100 100 L20.33 54.00 A92 92 0 0 1 100.00 8.00 Z" />
                   <circle class="promo-wheel-rim" cx="100" cy="100" r="92" />
                   <circle class="promo-wheel-inner-ring" cx="100" cy="100" r="45" />
                   <circle class="promo-wheel-center" cx="100" cy="100" r="23" />
-                  <text class="promo-wheel-label promo-wheel-label-good" x="146" y="96"><tspan x="146" dy="0">Good</tspan><tspan x="146" dy="18">Luck</tspan></text>
-                  <text class="promo-wheel-label promo-wheel-label-discount" x="58" y="146">10% Off</text>
-                  <text class="promo-wheel-label promo-wheel-label-free" x="58" y="58"><tspan x="58" dy="0">Free</tspan><tspan x="58" dy="17">1g</tspan></text>
+                  <text class="promo-wheel-label promo-wheel-label-good" x="129" y="49.8"><tspan x="129" dy="0">Good</tspan><tspan x="129" dy="15">Luck</tspan></text>
+                  <text class="promo-wheel-label promo-wheel-label-discount" x="158" y="100">10% Off</text>
+                  <text class="promo-wheel-label promo-wheel-label-free" x="129" y="150.2"><tspan x="129" dy="0">Free</tspan><tspan x="129" dy="15">1g</tspan></text>
+                  <text class="promo-wheel-label promo-wheel-label-fifty" x="71" y="150.2">50%</text>
+                  <text class="promo-wheel-label promo-wheel-label-eighth" x="42" y="100"><tspan x="42" dy="0">Free</tspan><tspan x="42" dy="12">1/8</tspan></text>
+                  <text class="promo-wheel-label promo-wheel-label-hundred" x="71" y="49.8">100%</text>
                 </svg>
               </div>
               <span class="promo-pointer" aria-hidden="true"></span>
@@ -106,7 +112,7 @@
     </div>
     <footer class="site-footer">
       <div class="brand"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></div>
-      <div class="footer-links"><a href="index.html">Home</a><a href="clothing.html">Clothing</a><a href="tel:+15107062263">Contact</a></div>
+      <div class="footer-links"><a href="index.html">Home</a><a href="tel:+15107062263">Contact</a></div>
       <p>&copy; 2026 Da Candy Shop. All rights reserved. 21+ only.</p>
     </footer>
     <script>
@@ -152,6 +158,8 @@
       const promoWheel = document.getElementById("promoWheel");
       const promoSpinButton = document.getElementById("promoSpinButton");
       const promoSpinMessage = document.getElementById("promoSpinMessage");
+      const pickupDateInput = flowerCheckout.elements.pickupDate;
+      const pickupTimeInput = flowerCheckout.elements.pickupTime;
       const closeOrderPopup = () => orderPopup.classList.add("hidden");
       function showOrderPopup({ eyebrow, title, orderNumber, message }) {
         orderPopupEyebrow.textContent = eyebrow;
@@ -196,17 +204,30 @@
         renderCart();
       }
       function promoDiscount(subtotal) {
-        return activePromo?.prize === "ten_percent" ? Math.round(subtotal * 0.1 * 100) / 100 : 0;
+        const rate = activePromo?.prize === "ten_percent"
+          ? 0.1
+          : activePromo?.prize === "fifty_percent"
+          ? 0.5
+          : activePromo?.prize === "hundred_percent"
+          ? 1
+          : 0;
+        return Math.round(subtotal * rate * 100) / 100;
       }
       function promoNote() {
         if (!activePromo) return "";
         if (activePromo.prize === "free_1g") return "Promo attached: Free 1g with purchase";
+        if (activePromo.prize === "free_eighth") return "Promo attached: Free 1/8th with purchase";
         if (activePromo.prize === "ten_percent") return "Promo attached: 10% off this order";
+        if (activePromo.prize === "fifty_percent") return "Promo attached: 50% off this order";
+        if (activePromo.prize === "hundred_percent") return "Promo attached: 100% off this order";
         return "";
       }
       function spinSegmentIndex(prize) {
         if (prize === "ten_percent") return 1;
         if (prize === "free_1g") return 2;
+        if (prize === "fifty_percent") return 3;
+        if (prize === "free_eighth") return 4;
+        if (prize === "hundred_percent") return 5;
         return 0;
       }
       function formatPickupOption(hour, minute) {
@@ -214,6 +235,24 @@
         const period = hour >= 12 ? "PM" : "AM";
         const displayHour = hour % 12 || 12;
         return { value, label: `${displayHour}:${String(minute).padStart(2, "0")} ${period}` };
+      }
+      function dateValue(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+      function tomorrowDate() {
+        const date = new Date();
+        date.setDate(date.getDate() + 1);
+        return date;
+      }
+      function isAfterTodayCutoff() {
+        const now = new Date();
+        return now.getHours() >= 17;
+      }
+      function minimumPickupDateValue() {
+        return dateValue(isAfterTodayCutoff() ? tomorrowDate() : new Date());
       }
       function currentPickupTimeValue() {
         const now = new Date();
@@ -227,16 +266,35 @@
         if (hour > 17 || (hour === 17 && minute > 0)) return "17:00";
         return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
       }
+      function isTodaySelected() {
+        return pickupDateInput.value === dateValue(new Date());
+      }
       function populatePickupTimes() {
+        const currentValue = pickupTimeInput.value;
+        const earliestToday = currentPickupTimeValue();
         const options = [];
         for (let hour = 9; hour <= 17; hour++) {
           for (let minute = 0; minute < 60; minute += 15) {
             if (hour === 17 && minute > 0) continue;
-            options.push(formatPickupOption(hour, minute));
+            const option = formatPickupOption(hour, minute);
+            if (isTodaySelected() && option.value < earliestToday) continue;
+            options.push(option);
           }
         }
-        pickupTime.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join("");
-        pickupTime.value = currentPickupTimeValue();
+        pickupTimeInput.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join("");
+        pickupTimeInput.value = options.some(option => option.value === currentValue) ? currentValue : options[0]?.value || "";
+      }
+      function refreshPickupControls() {
+        const minimumDate = minimumPickupDateValue();
+        pickupDateInput.min = minimumDate;
+        if (!pickupDateInput.value || pickupDateInput.value < minimumDate) pickupDateInput.value = minimumDate;
+        populatePickupTimes();
+      }
+      function validatePickupDateTime() {
+        refreshPickupControls();
+        if (pickupDateInput.value < pickupDateInput.min) return "Choose a pickup date that has not passed.";
+        if (isTodaySelected() && pickupTimeInput.value < currentPickupTimeValue()) return "Choose a pickup time that has not passed.";
+        return "";
       }
       async function convexCall(kind, path, args) {
         const base = convexUrl();
@@ -304,7 +362,7 @@
         const discount = promoDiscount(subtotal);
         const total = Math.max(0, subtotal - discount);
         const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-        const promoLine = activePromo ? `<div class="cart-line promo-cart-line"><span>${promoNote()}</span><strong>${activePromo.prize === "ten_percent" ? `-${money(discount)}` : "Added"}</strong></div>` : "";
+        const promoLine = activePromo ? `<div class="cart-line promo-cart-line"><span>${promoNote()}</span><strong>${discount ? `-${money(discount)}` : "Added"}</strong></div>` : "";
         flowerCart.innerHTML = cart.length ? `${cart.map((item, index) => `<div class="cart-line"><span>${item.name} <small>x ${item.quantity}</small></span><strong>${money(itemPrice(item) * item.quantity)}</strong><button type="button" data-remove="${index}">Remove</button></div>`).join("")}${promoLine}` : "<p>Your candy bag is empty.</p>";
         flowerTotal.textContent = money(total);
         headerCartCount.textContent = count;
@@ -369,7 +427,7 @@
           if (!response.ok) throw new Error(result.error || "Spin failed.");
           localStorage.setItem("dcsPromoSpinWeek", promoWeekKey());
 
-          const landingRotation = [270, 135, 45][spinSegmentIndex(result.prize)];
+          const landingRotation = [330, 270, 210, 150, 90, 30][spinSegmentIndex(result.prize)];
           const finalRotation = 1800 + landingRotation;
           promoWheel.style.transform = `rotate(${finalRotation}deg)`;
 
@@ -403,9 +461,12 @@
           renderCart();
         });
       });
+      pickupDateInput.addEventListener("change", refreshPickupControls);
       flowerCheckout.addEventListener("submit", async event => {
         event.preventDefault();
         if (!cart.length) return alert("Add at least one strain before placing an order.");
+        const pickupError = validatePickupDateTime();
+        if (pickupError) return alert(pickupError);
         const data = Object.fromEntries(new FormData(flowerCheckout));
         const payOnline = data.paymentMethod === "stripe";
         const subtotal = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
@@ -470,7 +531,7 @@
         cart.length = 0;
         renderCart();
         flowerCheckout.reset();
-        populatePickupTimes();
+        refreshPickupControls();
         paymentNote.textContent = "Payment Due At Pickup";
         submitButton.disabled = false;
         submitButton.textContent = "Place Order";
@@ -517,9 +578,10 @@
       } else if (localStorage.getItem("dcsPromoSpinWeek") === promoWeekKey()) {
         lockPromoSpin();
       }
-      populatePickupTimes();
+      refreshPickupControls();
       renderCart();
       loadInventory();
+      window.setInterval(refreshPickupControls, 60000);
       window.setInterval(loadInventory, 60000);
     </script>
   </body>

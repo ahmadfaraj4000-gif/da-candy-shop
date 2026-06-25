@@ -2856,6 +2856,18 @@ blockquote,
   fill: #151a15;
 }
 
+.promo-slice-fifty {
+  fill: #42b36a;
+}
+
+.promo-slice-eighth {
+  fill: #233025;
+}
+
+.promo-slice-hundred {
+  fill: #fff35a;
+}
+
 .promo-wheel-rim {
   fill: none;
   stroke: rgba(255,255,255,.22);
@@ -2900,6 +2912,19 @@ blockquote,
 
 .promo-wheel-label-free {
   font-size: 14px;
+}
+
+.promo-wheel-label-fifty,
+.promo-wheel-label-eighth,
+.promo-wheel-label-hundred {
+  font-size: 9px;
+  letter-spacing: .03em;
+}
+
+.promo-wheel-label-hundred {
+  fill: #050805;
+  stroke: rgba(255,255,255,.18);
+  stroke-width: .8px;
 }
 
 .promo-pointer {
