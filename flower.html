@@ -37,6 +37,30 @@
           <label>Search <input id="flowerSearch" type="search" placeholder="Search strains" /></label>
           <label>Type <select id="flowerType"><option value="">All</option><option>Indica</option><option>Sativa</option><option>Hybrid</option></select></label>
           <label>Sort By <select id="flowerSort"><option value="popular">Most Popular</option><option value="potency">Highest Potency</option><option value="low">Lowest Price</option><option value="high">Highest Price</option></select></label>
+          <div class="promo-spinner" aria-live="polite">
+            <div class="promo-spinner-copy">
+              <strong>Spin to win</strong>
+              <span>Chance to win Free 1g or 10% off. Purchase required. One spin per week.</span>
+            </div>
+            <div class="promo-wheel-wrap">
+              <div id="promoWheel" class="promo-wheel">
+                <svg viewBox="0 0 200 200" role="img" aria-label="Prize wheel with Good Luck, 10% Off, and Free 1g sections">
+                  <path class="promo-slice promo-slice-good" d="M100 100 L100 8 A92 92 0 0 1 100 192 Z" />
+                  <path class="promo-slice promo-slice-discount" d="M100 100 L100 192 A92 92 0 0 1 8 100 Z" />
+                  <path class="promo-slice promo-slice-free" d="M100 100 L8 100 A92 92 0 0 1 100 8 Z" />
+                  <circle class="promo-wheel-rim" cx="100" cy="100" r="92" />
+                  <circle class="promo-wheel-inner-ring" cx="100" cy="100" r="45" />
+                  <circle class="promo-wheel-center" cx="100" cy="100" r="23" />
+                  <text class="promo-wheel-label promo-wheel-label-good" x="146" y="96"><tspan x="146" dy="0">Good</tspan><tspan x="146" dy="18">Luck</tspan></text>
+                  <text class="promo-wheel-label promo-wheel-label-discount" x="58" y="146">10% Off</text>
+                  <text class="promo-wheel-label promo-wheel-label-free" x="58" y="58"><tspan x="58" dy="0">Free</tspan><tspan x="58" dy="17">1g</tspan></text>
+                </svg>
+              </div>
+              <span class="promo-pointer" aria-hidden="true"></span>
+            </div>
+            <button id="promoSpinButton" class="btn small full" type="button">Spin</button>
+            <p id="promoSpinMessage" class="promo-spin-message">Wins attach to your order number automatically.</p>
+          </div>
         </aside>
         <div id="flowerGrid" class="product-grid strain-grid"></div>
       </section>
@@ -70,6 +94,16 @@
         <div id="flowerConfirmation" class="confirmation glass hidden"></div>
       </section>
     </main>
+    <div id="orderPopup" class="order-popup hidden" role="dialog" aria-modal="true" aria-labelledby="orderPopupTitle">
+      <div class="order-popup-card glass">
+        <button id="orderPopupClose" class="order-popup-close" type="button" aria-label="Close order confirmation">&times;</button>
+        <p class="eyebrow" id="orderPopupEyebrow">Order Saved</p>
+        <h2 id="orderPopupTitle">Save Your Order Number</h2>
+        <p id="orderPopupNumber" class="order-popup-number">DCS-100001</p>
+        <p id="orderPopupMessage" class="order-popup-message">Show this number at pickup so the counter can find your order fast.</p>
+        <button id="orderPopupDone" class="btn primary full" type="button">Got It</button>
+      </div>
+    </div>
     <footer class="site-footer">
       <div class="brand"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></div>
       <div class="footer-links"><a href="index.html">Home</a><a href="clothing.html">Clothing</a><a href="tel:+15107062263">Contact</a></div>
@@ -78,6 +112,7 @@
     <script>
       window.DCS_CONVEX_URL = "https://opulent-panda-156.convex.cloud";
       window.DCS_STRIPE_CHECKOUT_API_URL = "https://opulent-panda-156.convex.site/create-checkout-session";
+      window.DCS_PROMO_SPIN_API_URL = "https://opulent-panda-156.convex.site/promo-spin";
     </script>
     <script src="nav.js"></script>
     <script src="age-gate.js"></script>
@@ -105,6 +140,75 @@
       const itemPrice = item => selectedPaymentMethod() === "stripe" ? Number(item.onlinePrice ?? item.price) : Number(item.price);
       const convexUrl = () => window.DCS_CONVEX_URL || localStorage.getItem("DCS_CONVEX_URL") || "";
       const stripeCheckoutUrl = () => window.DCS_STRIPE_CHECKOUT_API_URL || localStorage.getItem("DCS_STRIPE_CHECKOUT_API_URL") || "";
+      const promoSpinUrl = () => window.DCS_PROMO_SPIN_API_URL || localStorage.getItem("DCS_PROMO_SPIN_API_URL") || "";
+      let activePromo = null;
+      const orderPopup = document.getElementById("orderPopup");
+      const orderPopupEyebrow = document.getElementById("orderPopupEyebrow");
+      const orderPopupTitle = document.getElementById("orderPopupTitle");
+      const orderPopupNumber = document.getElementById("orderPopupNumber");
+      const orderPopupMessage = document.getElementById("orderPopupMessage");
+      const orderPopupClose = document.getElementById("orderPopupClose");
+      const orderPopupDone = document.getElementById("orderPopupDone");
+      const promoWheel = document.getElementById("promoWheel");
+      const promoSpinButton = document.getElementById("promoSpinButton");
+      const promoSpinMessage = document.getElementById("promoSpinMessage");
+      const closeOrderPopup = () => orderPopup.classList.add("hidden");
+      function showOrderPopup({ eyebrow, title, orderNumber, message }) {
+        orderPopupEyebrow.textContent = eyebrow;
+        orderPopupTitle.textContent = title;
+        orderPopupNumber.textContent = orderNumber;
+        orderPopupMessage.textContent = message;
+        orderPopup.classList.remove("hidden");
+      }
+      function promoDeviceId() {
+        const existing = localStorage.getItem("dcsPromoDeviceId");
+        if (existing) return existing;
+
+        const next = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        localStorage.setItem("dcsPromoDeviceId", next);
+        return next;
+      }
+      function savedPromo() {
+        try {
+          return JSON.parse(localStorage.getItem("dcsActivePromo") || "null");
+        } catch (_) {
+          return null;
+        }
+      }
+      function promoWeekKey() {
+        const now = new Date();
+        const yearStart = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+        const dayOfYear = Math.floor((now.getTime() - yearStart.getTime()) / 86400000) + 1;
+        return `${now.getUTCFullYear()}-${String(Math.ceil(dayOfYear / 7)).padStart(2, "0")}`;
+      }
+      function lockPromoSpin(message = "You already spun this week. Try again next week.") {
+        localStorage.setItem("dcsPromoSpinWeek", promoWeekKey());
+        promoSpinButton.disabled = true;
+        promoSpinMessage.textContent = message;
+      }
+      function setActivePromo(promo) {
+        activePromo = promo && promo.prize !== "good_luck" && !promo.redeemed ? promo : null;
+        if (activePromo) {
+          localStorage.setItem("dcsActivePromo", JSON.stringify(activePromo));
+        } else {
+          localStorage.removeItem("dcsActivePromo");
+        }
+        renderCart();
+      }
+      function promoDiscount(subtotal) {
+        return activePromo?.prize === "ten_percent" ? Math.round(subtotal * 0.1 * 100) / 100 : 0;
+      }
+      function promoNote() {
+        if (!activePromo) return "";
+        if (activePromo.prize === "free_1g") return "Promo attached: Free 1g with purchase";
+        if (activePromo.prize === "ten_percent") return "Promo attached: 10% off this order";
+        return "";
+      }
+      function spinSegmentIndex(prize) {
+        if (prize === "ten_percent") return 1;
+        if (prize === "free_1g") return 2;
+        return 0;
+      }
       function formatPickupOption(hour, minute) {
         const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
         const period = hour >= 12 ? "PM" : "AM";
@@ -196,9 +300,12 @@
         render();
       }
       function renderCart() {
-        const total = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
+        const subtotal = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
+        const discount = promoDiscount(subtotal);
+        const total = Math.max(0, subtotal - discount);
         const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-        flowerCart.innerHTML = cart.length ? cart.map((item, index) => `<div class="cart-line"><span>${item.name} <small>x ${item.quantity}</small></span><strong>${money(itemPrice(item) * item.quantity)}</strong><button type="button" data-remove="${index}">Remove</button></div>`).join("") : "<p>Your candy bag is empty.</p>";
+        const promoLine = activePromo ? `<div class="cart-line promo-cart-line"><span>${promoNote()}</span><strong>${activePromo.prize === "ten_percent" ? `-${money(discount)}` : "Added"}</strong></div>` : "";
+        flowerCart.innerHTML = cart.length ? `${cart.map((item, index) => `<div class="cart-line"><span>${item.name} <small>x ${item.quantity}</small></span><strong>${money(itemPrice(item) * item.quantity)}</strong><button type="button" data-remove="${index}">Remove</button></div>`).join("")}${promoLine}` : "<p>Your candy bag is empty.</p>";
         flowerTotal.textContent = money(total);
         headerCartCount.textContent = count;
         headerCart.setAttribute("aria-label", count ? `View checkout cart, ${count} item${count === 1 ? "" : "s"}` : "View checkout cart");
@@ -239,6 +346,57 @@
       headerCart.addEventListener("click", () => {
         document.getElementById("checkout").scrollIntoView({ behavior: "smooth" });
       });
+      orderPopupClose.addEventListener("click", closeOrderPopup);
+      orderPopupDone.addEventListener("click", closeOrderPopup);
+      orderPopup.addEventListener("click", event => {
+        if (event.target === orderPopup) closeOrderPopup();
+      });
+      promoSpinButton.addEventListener("click", async () => {
+        const base = promoSpinUrl();
+        if (!base) return alert("Promo spinner is not configured.");
+
+        promoSpinButton.disabled = true;
+        promoSpinButton.textContent = "Spinning...";
+        promoSpinMessage.textContent = "Checking your weekly spin...";
+
+        try {
+          const response = await fetch(base, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deviceKey: promoDeviceId() })
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(result.error || "Spin failed.");
+          localStorage.setItem("dcsPromoSpinWeek", promoWeekKey());
+
+          const landingRotation = [270, 135, 45][spinSegmentIndex(result.prize)];
+          const finalRotation = 1800 + landingRotation;
+          promoWheel.style.transform = `rotate(${finalRotation}deg)`;
+
+          window.setTimeout(() => {
+            if (!result.eligible) {
+              promoSpinMessage.textContent = !result.redeemed && result.prize !== "good_luck"
+                ? `You already won ${result.label} this week. Place an order to claim it.`
+                : result.redeemed
+                ? "You already used this week's spin. Try again next week."
+                : "You already spun this week. Try again next week.";
+            } else if (result.prize === "good_luck") {
+              promoSpinMessage.textContent = "Good luck next time. You can spin again next week.";
+            } else {
+              promoSpinMessage.textContent = `${result.label} won. Add items and place an order to claim it.`;
+            }
+
+            setActivePromo(result);
+            promoSpinButton.textContent = "Spin";
+            promoSpinButton.disabled = true;
+          }, 1650);
+        } catch (error) {
+          console.warn(error);
+          promoSpinMessage.textContent = error.message || "Spin could not be started.";
+          promoSpinButton.disabled = false;
+          promoSpinButton.textContent = "Spin";
+        }
+      });
       flowerCheckout.paymentMethod.forEach(input => {
         input.addEventListener("change", () => {
           paymentNote.textContent = input.value === "stripe" && input.checked ? "Secure Online Payment" : "Payment Due At Pickup";
@@ -250,7 +408,8 @@
         if (!cart.length) return alert("Add at least one strain before placing an order.");
         const data = Object.fromEntries(new FormData(flowerCheckout));
         const payOnline = data.paymentMethod === "stripe";
-        const total = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
+        const subtotal = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
+        const total = Math.max(0, subtotal - promoDiscount(subtotal));
         const pricedCart = cart.map(item => ({
           productId: item.productId,
           inventoryId: item.inventoryId,
@@ -258,7 +417,16 @@
           price: itemPrice(item),
           quantity: item.quantity
         }));
-        const orderInput = { customerName: `${data.firstName} ${data.lastName}`, phone: data.phone, pickupDate: data.pickupDate, pickupTime: data.pickupTime, items: pricedCart, total, paymentMethod: data.paymentMethod };
+        const orderInput = {
+          customerName: `${data.firstName} ${data.lastName}`,
+          phone: data.phone,
+          pickupDate: data.pickupDate,
+          pickupTime: data.pickupTime,
+          items: pricedCart,
+          total,
+          paymentMethod: data.paymentMethod,
+          promoSpinId: activePromo?.spinId
+        };
         let orderNumber = `DCS-${Number(localStorage.getItem("dcsOrderSeed") || 100000) + 1}`;
         let orderId = null;
         const submitButton = flowerCheckout.querySelector("button[type='submit']");
@@ -291,7 +459,14 @@
         }
         localStorage.setItem("dcsOrderSeed", orderNumber.replace("DCS-", ""));
         flowerConfirmation.classList.remove("hidden");
-        flowerConfirmation.innerHTML = `<h2>Sweet, You're Set</h2><h3>${orderNumber}</h3><p>Pickup Time: ${data.pickupDate} at ${data.pickupTime}</p><p>Payment: Pay at the store</p>${cart.map(item => `<p>${item.name} x ${item.quantity}</p>`).join("")}<strong>Total: ${money(total)}</strong>`;
+        flowerConfirmation.innerHTML = `<h2>Sweet, You're Set</h2><h3>${orderNumber}</h3><p>Pickup Time: ${data.pickupDate} at ${data.pickupTime}</p><p>Payment: Pay at the store</p>${activePromo ? `<p>${promoNote()}</p>` : ""}${cart.map(item => `<p>${item.name} x ${item.quantity}</p>`).join("")}<strong>Total: ${money(total)}</strong>`;
+        showOrderPopup({
+          eyebrow: "Pickup Order Saved",
+          title: "Save Your Order Number",
+          orderNumber,
+          message: activePromo ? `${promoNote()}. Save this order number and show it at pickup.` : "Take a screenshot or write this down. Show this order number when you pick up and pay at the store."
+        });
+        setActivePromo(null);
         cart.length = 0;
         renderCart();
         flowerCheckout.reset();
@@ -301,10 +476,46 @@
         submitButton.textContent = "Place Order";
       });
       [flowerSearch, flowerType, flowerSort].forEach(input => input.addEventListener("input", render));
-      if (new URLSearchParams(window.location.search).get("payment") === "success") {
+      async function showStripeReturnConfirmation() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("payment") !== "success") return;
+
+        const orderId = params.get("orderId");
+        let orderNumber = "Your order";
+        let pickupText = "Your pickup order is being prepared.";
+        let orderPromo = null;
+
+        if (orderId) {
+          try {
+            const order = await convexCall("query", "orders:getOrderConfirmation", { id: orderId });
+            if (order?.orderNumber) orderNumber = order.orderNumber;
+            if (order?.pickupDate && order?.pickupTime) {
+              pickupText = `Pickup Time: ${order.pickupDate} at ${order.pickupTime}`;
+            }
+            if (order?.promo) orderPromo = order.promo;
+          } catch (error) {
+            console.warn(error);
+          }
+        }
+
         flowerConfirmation.classList.remove("hidden");
-        flowerConfirmation.innerHTML = "<h2>Payment Received</h2><p>Your online payment was completed. Your pickup order is being prepared.</p>";
+        flowerConfirmation.innerHTML = `<h2>Payment Received</h2><h3>${orderNumber}</h3><p>${pickupText}</p>${orderPromo ? `<p>Promo: ${orderPromo.label}</p>` : ""}<p>Save this order number for pickup.</p>`;
+        showOrderPopup({
+          eyebrow: "Payment Received",
+          title: "Save Your Order Number",
+          orderNumber,
+          message: orderPromo ? `Your online payment went through. Promo: ${orderPromo.label}. Save this number and show it at pickup.` : "Your online payment went through. Save this number and show it at pickup so the counter can match your order."
+        });
+        setActivePromo(null);
         document.getElementById("checkout").scrollIntoView({ behavior: "smooth" });
+      }
+      showStripeReturnConfirmation();
+      const storedPromo = savedPromo();
+      if (storedPromo) {
+        setActivePromo(storedPromo);
+        lockPromoSpin(`${storedPromo.label} is ready. Place an order to claim it.`);
+      } else if (localStorage.getItem("dcsPromoSpinWeek") === promoWeekKey()) {
+        lockPromoSpin();
       }
       populatePickupTimes();
       renderCart();
