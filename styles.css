@@ -1900,6 +1900,136 @@ textarea:focus {
   }
 }
 
+/* Final mobile checkout and navigation overrides. */
+[hidden] {
+  display: none !important;
+}
+
+.checkout-grid,
+.checkout-panel,
+.pickup-panel,
+.pickup-panel label,
+.pickup-panel fieldset {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.checkout-panel input,
+.checkout-panel select,
+.pickup-panel .payment-choice,
+.pickup-panel .payment-choice label {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.checkout-panel input[type="date"],
+.checkout-panel select {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+@media (max-width: 860px) {
+  .site-header {
+    position: sticky;
+    top: .6rem;
+    overflow: visible;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: .65rem;
+    margin: .55rem;
+    padding: .75rem;
+    border-radius: 18px;
+    background: rgba(0,0,0,.9);
+    border: 1px solid rgba(255,255,255,.12);
+    box-shadow: 0 18px 42px rgba(0,0,0,.36);
+  }
+
+  .site-header .brand {
+    min-width: 0;
+  }
+
+  .site-header .site-nav {
+    position: absolute;
+    top: calc(100% + .55rem);
+    left: 0;
+    right: 0;
+    z-index: 80;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .6rem;
+    width: auto;
+    max-height: 0;
+    margin: 0;
+    padding: 0 1rem;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px);
+    border: 1px solid rgba(248,223,0,.16);
+    border-radius: 18px;
+    background: rgba(3,3,3,.96);
+    box-shadow: 0 22px 50px rgba(0,0,0,.46);
+    transition: max-height .24s ease, padding .24s ease, opacity .2s ease, transform .2s ease;
+  }
+
+  .site-header.nav-open .site-nav {
+    max-height: 420px;
+    padding: .9rem;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .site-header .site-nav a {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 54px;
+    padding: .9rem 1rem;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 12px;
+    background: rgba(255,255,255,.035);
+    color: #fff;
+    text-align: left;
+    letter-spacing: .08em;
+  }
+
+  .site-header .site-nav a:hover {
+    background: rgba(57,209,10,.12);
+    border-color: rgba(57,209,10,.32);
+  }
+}
+
+@media (max-width: 640px) {
+  .modern-checkout {
+    overflow: hidden;
+  }
+
+  .checkout-grid {
+    width: 100%;
+    overflow: hidden;
+    padding: .85rem;
+  }
+
+  .checkout-panel {
+    padding: .85rem;
+    overflow: hidden;
+  }
+
+  .checkout-panel input,
+  .checkout-panel select {
+    font-size: 16px;
+    text-align: left;
+  }
+
+  .payment-choice {
+    padding: .75rem;
+  }
+}
+
 /* Logo brand pass: black base, green action, yellow accent, white type. */
 :root {
   --bg: #000000;

@@ -1,12 +1,25 @@
 (function () {
   if (!/flower\.html(?:$|[?#])/.test(window.location.pathname)) return;
 
+  const promoSeenKey = "dcsNewCustomerPromoSeen";
+
+  function hasSeenPromo() {
+    return localStorage.getItem(promoSeenKey) === "1" || document.cookie.split("; ").includes(`${promoSeenKey}=1`);
+  }
+
+  function markPromoSeen() {
+    localStorage.setItem(promoSeenKey, "1");
+    document.cookie = `${promoSeenKey}=1; max-age=31536000; path=/; SameSite=Lax`;
+  }
+
   function showPromo() {
+    if (hasSeenPromo()) return;
     if (document.querySelector(".age-gate") || document.querySelector(".flower-promo")) {
       window.setTimeout(showPromo, 250);
       return;
     }
 
+    markPromoSeen();
     const promo = document.createElement("div");
     promo.className = "flower-promo";
     promo.setAttribute("role", "dialog");
