@@ -39,13 +39,8 @@
             <span>In-store payment</span>
           </div>
         </div>
-        <div class="hero-banner hero-slideshow" aria-label="Featured strain photos">
-          <img class="active" src="assets/images/Biscoti.png" alt="Featured strain photo" loading="eager" fetchpriority="high" />
-          <img src="assets/images/Blueberry.png" alt="Featured strain photo" />
-          <img src="assets/images/Couchlock-Candy.png" alt="Featured strain photo" />
-          <img src="assets/images/Gelato-41.png" alt="Featured strain photo" />
-          <img src="assets/images/Gruntz.png" alt="Featured strain photo" />
-          <img src="assets/images/Pink-Candy.png" alt="Featured strain photo" />
+        <div id="homeSlideshow" class="hero-banner hero-slideshow" aria-label="Featured strain photos">
+          <img class="active" src="assets/images/weed-1.avif" alt="Featured strain photo" loading="eager" fetchpriority="high" />
         </div>
       </section>
 
@@ -54,32 +49,7 @@
           <p class="eyebrow">Flower Counter</p>
           <h2>Flower Menu</h2>
         </div>
-        <div class="product-grid">
-          <article class="product-card">
-            <span class="badge">Hybrid</span>
-            <div class="product-art purple"><img src="assets/images/Blueberry.png" alt="Blue Dream strain" /></div>
-            <h3>Blueberry</h3>
-            <p>Check the menu for current availability and pricing.</p>
-            <div class="price-row"><strong>Price</strong><span>in menu</span></div>
-            <a class="btn small" href="flower.html">View Menu</a>
-          </article>
-          <article class="product-card">
-            <span class="badge gold">Popular</span>
-            <div class="product-art green"><img src="assets/images/Pink-Candy.png" alt="Runtz strain" /></div>
-            <h3>Pink Candy</h3>
-            <p>Check the menu for current availability and pricing.</p>
-            <div class="price-row"><strong>Price</strong><span>in menu</span></div>
-            <a class="btn small" href="flower.html">View Menu</a>
-          </article>
-          <article class="product-card">
-            <span class="badge">Indica</span>
-            <div class="product-art gold"><img src="assets/images/Gelato-41.png" alt="Gelato 41 strain" /></div>
-            <h3>Gelato 41</h3>
-            <p>Check the menu for current availability and pricing.</p>
-            <div class="price-row"><strong>Price</strong><span>in menu</span></div>
-            <a class="btn small" href="flower.html">View Menu</a>
-          </article>
-        </div>
+        <div id="homeFeaturedGrid" class="product-grid"></div>
       </section>
 
       <section class="section payment-section modern-payment-section">
@@ -118,9 +88,13 @@
       </div>
       <p>&copy; 2026 Da Candy Shop. All rights reserved. 21+ only.</p>
     </footer>
+    <script>
+      window.DCS_CONVEX_URL = "https://opulent-panda-156.convex.cloud";
+    </script>
     <script src="nav.js"></script>
     <script src="age-gate.js"></script>
     <script src="slideshow.js"></script>
+    <script src="home-menu.js"></script>
     <script src="smoke.js"></script>
   </body>
 </html>
