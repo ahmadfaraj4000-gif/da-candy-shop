@@ -46,18 +46,42 @@
     <script src="age-gate.js"></script>
     <script>
       window.DCS_IN_STORE_PAYMENT_API_URL = "https://opulent-panda-156.convex.site/create-in-store-payment-session";
+      window.DCS_IN_STORE_PAYMENT_CONFIRM_API_URL = "https://opulent-panda-156.convex.site/confirm-in-store-payment-session";
 
       const paymentForm = document.getElementById("qrStripePayment");
       const paymentMessage = document.getElementById("qrPaymentMessage");
       const paymentParams = new URLSearchParams(window.location.search);
 
-      if (paymentParams.get("payment") === "success") {
-        paymentMessage.textContent = "Payment received. Please show the confirmation screen to the counter.";
+      async function confirmReturnedPayment() {
+        const sessionId = paymentParams.get("session_id");
+        if (paymentParams.get("payment") !== "success" || !sessionId) return;
+
+        paymentMessage.textContent = "Payment received. Confirming with Stripe...";
+
+        try {
+          const response = await fetch(window.DCS_IN_STORE_PAYMENT_CONFIRM_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId })
+          });
+          const payload = await response.json().catch(() => ({}));
+
+          if (!response.ok || !payload.ok) {
+            throw new Error(payload.error || payload.message || "Payment could not be confirmed yet.");
+          }
+
+          paymentMessage.textContent = "Payment confirmed. Please show this screen to the counter.";
+        } catch (error) {
+          console.warn(error);
+          paymentMessage.textContent = "Payment received. The counter can verify it in Stripe if the admin screen has not updated yet.";
+        }
       }
 
       if (paymentParams.get("payment") === "cancelled") {
         paymentMessage.textContent = "Payment was cancelled. You can enter the amount again when ready.";
       }
+
+      confirmReturnedPayment();
 
       paymentForm.addEventListener("submit", async event => {
         event.preventDefault();
