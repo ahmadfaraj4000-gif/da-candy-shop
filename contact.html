@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact | Da Candy Shop</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="smoke-layer" aria-hidden="true"></div>
+    <header class="site-header">
+      <a class="brand" href="index.html"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      <nav class="site-nav">
+        <a href="index.html">Home</a>
+        <a href="flower.html">Flower</a>
+        <a href="landing-page.html">In-Store Payment</a>
+        <a href="tel:+15107062263">Contact</a>
+      </nav>
+    </header>
+    <main>
+      <section class="section about-hero">
+        <p class="eyebrow">Contact</p>
+        <h1>Da Candy Shop</h1>
+        <p>Call, visit, or send a message.</p>
+      </section>
+      <section class="section split">
+        <div class="glass text-panel">
+          <h2>Contact</h2>
+          <p>For pickup orders or questions, call the store or send a message below.</p>
+          <h2>Pickup</h2>
+          <p>Pickup orders are available Monday-Friday during business hours.</p>
+        </div>
+        <div class="store-photos">
+          <div></div><div></div><div></div>
+        </div>
+      </section>
+      <section class="section testimonials">
+        <h2>Customer Notes</h2>
+        <div class="product-grid">
+          <blockquote class="glass">"Fast pickup and helpful service."<span>- Customer</span></blockquote>
+          <blockquote class="glass">"Easy online ordering."<span>- Customer</span></blockquote>
+          <blockquote class="glass">"Clear prices and quick checkout."<span>- Customer</span></blockquote>
+        </div>
+      </section>
+      <section class="section contact-page-grid">
+        <form id="contactForm" class="glass">
+          <h2>Drop Us A Note</h2>
+          <label>Name <input name="name" required /></label>
+          <label>Email <input name="email" type="email" required /></label>
+          <label>Phone <input name="phone" required /></label>
+          <label>Message <textarea name="message" rows="5" required></textarea></label>
+          <button class="btn primary" type="submit">Send Message</button>
+          <p id="formStatus" role="status"></p>
+        </form>
+        <div class="glass">
+          <h2>Store Information</h2>
+          <p><strong>Phone</strong><br />510-706-2263</p>
+          <p><strong>Email</strong><br />orders@dacandyshop.com</p>
+          <p><strong>Address</strong><br />1120 Albany Ave<br />Hartford, CT 06112</p>
+          <h3>Business Hours</h3>
+          <p>Monday-Friday 9 AM-5 PM</p>
+          <div class="map-placeholder">1120 Albany Ave, Hartford, CT 06112</div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="brand"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></div>
+      <div class="footer-links"><a href="index.html">Home</a><a href="flower.html">Flower</a><a href="#">Instagram</a></div>
+      <p>&copy; 2026 Da Candy Shop. All rights reserved.</p>
+    </footer>
+    <script src="nav.js"></script>
+    <script src="age-gate.js"></script>
+    <script>
+      async function convexMutation(path, args) {
+        const baseUrl = localStorage.getItem("DCS_CONVEX_URL") || window.DCS_CONVEX_URL || "";
+        if (!baseUrl) return null;
+        const response = await fetch(`${baseUrl.replace(/\/$/, "")}/api/mutation`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path, args, format: "json" })
+        });
+        if (!response.ok) throw new Error("Convex request failed.");
+        return await response.json();
+      }
+      contactForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        const message = Object.fromEntries(new FormData(contactForm));
+        const saved = JSON.parse(localStorage.getItem("dcsMessages") || "[]");
+        saved.push({ ...message, createdAt: Date.now() });
+        localStorage.setItem("dcsMessages", JSON.stringify(saved));
+        try {
+          await convexMutation("messages:createMessage", message);
+        } catch (error) {
+          console.warn(error);
+        }
+        contactForm.reset();
+        formStatus.textContent = "Message received. We'll follow up shortly.";
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flower | Da Candy Shop</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="smoke-layer" aria-hidden="true"></div>
+    <header class="site-header flower-header">
+      <a class="brand" href="index.html"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      <nav class="site-nav">
+        <a href="index.html">Home</a>
+        <a href="flower.html">Flower</a>
+        <a href="landing-page.html">In-Store Payment</a>
+        <a href="tel:+15107062263">Contact</a>
+      </nav>
+      <button id="headerCart" class="header-cart" type="button" aria-label="View checkout cart">
+        <span class="header-cart-icon" aria-hidden="true"></span>
+        <span id="headerCartCount">0</span>
+      </button>
+    </header>
+    <main>
+      <section class="section shop-layout flower-menu-shell">
+        <div class="section-heading wide">
+          <p class="eyebrow">Flower Counter</p>
+          <h1>Flower Menu</h1>
+          <p class="tagline">Choose your flower and schedule pickup.</p>
+        </div>
+        <aside class="filter-panel glass">
+          <div class="filter-title">
+            <span>Browse</span>
+            <strong>Menu</strong>
+          </div>
+          <label>Search <input id="flowerSearch" type="search" placeholder="Search strains" /></label>
+          <label>Type <select id="flowerType"><option value="">All</option><option>Indica</option><option>Sativa</option><option>Hybrid</option></select></label>
+          <label>Sort By <select id="flowerSort"><option value="popular">Most Popular</option><option value="potency">Highest Potency</option><option value="low">Lowest Price</option><option value="high">Highest Price</option></select></label>
+          <div class="promo-spinner" aria-live="polite" hidden>
+            <div class="promo-spinner-copy">
+              <strong>Spin to win</strong>
+              <span>Chance to win Free 1g, 10% off, 50% off, Free 1/8th, or the mythical 100% off. Purchase required to claim any reward. One spin per phone number per week.</span>
+            </div>
+            <div class="promo-wheel-wrap">
+              <div id="promoWheel" class="promo-wheel">
+                <svg viewBox="0 0 200 200" role="img" aria-label="Prize wheel with Good Luck, 10% Off, Free 1g, 50% Off, Free 1/8th, and 100% Off sections">
+                  <path class="promo-slice promo-slice-good" d="M100 100 L100.00 8.00 A92 92 0 0 1 179.67 54.00 Z" />
+                  <path class="promo-slice promo-slice-discount" d="M100 100 L179.67 54.00 A92 92 0 0 1 179.67 146.00 Z" />
+                  <path class="promo-slice promo-slice-free" d="M100 100 L179.67 146.00 A92 92 0 0 1 100.00 192.00 Z" />
+                  <path class="promo-slice promo-slice-fifty" d="M100 100 L100.00 192.00 A92 92 0 0 1 20.33 146.00 Z" />
+                  <path class="promo-slice promo-slice-eighth" d="M100 100 L20.33 146.00 A92 92 0 0 1 20.33 54.00 Z" />
+                  <path class="promo-slice promo-slice-hundred" d="M100 100 L20.33 54.00 A92 92 0 0 1 100.00 8.00 Z" />
+                  <circle class="promo-wheel-rim" cx="100" cy="100" r="92" />
+                  <circle class="promo-wheel-inner-ring" cx="100" cy="100" r="45" />
+                  <circle class="promo-wheel-center" cx="100" cy="100" r="23" />
+                  <text class="promo-wheel-label promo-wheel-label-good" x="129" y="47"><tspan x="129" dy="0">Good</tspan><tspan x="129" dy="10">Luck</tspan><tspan x="129" dy="10">Next Time</tspan></text>
+                  <text class="promo-wheel-label promo-wheel-label-discount" x="158" y="100">10% Off</text>
+                  <text class="promo-wheel-label promo-wheel-label-free" x="129" y="150.2"><tspan x="129" dy="0">Free</tspan><tspan x="129" dy="15">1g</tspan></text>
+                  <text class="promo-wheel-label promo-wheel-label-fifty" x="71" y="150.2">50%</text>
+                  <text class="promo-wheel-label promo-wheel-label-eighth" x="42" y="100"><tspan x="42" dy="0">Free</tspan><tspan x="42" dy="12">1/8</tspan></text>
+                  <text class="promo-wheel-label promo-wheel-label-hundred" x="71" y="49.8">100%</text>
+                </svg>
+              </div>
+              <span class="promo-pointer" aria-hidden="true"></span>
+            </div>
+            <button id="promoSpinButton" class="btn small full" type="button">Spin</button>
+            <p id="promoSpinMessage" class="promo-spin-message">Wins attach to your order number automatically.</p>
+          </div>
+        </aside>
+        <div id="flowerGrid" class="product-grid strain-grid"></div>
+      </section>
+      <section id="checkout" class="section checkout-section modern-checkout">
+        <div class="section-heading"><p class="eyebrow">Pickup Only</p><h2>Bag it up</h2></div>
+        <form id="flowerCheckout" class="checkout-grid glass">
+          <div class="checkout-panel customer-panel">
+            <h3>Customer Information</h3>
+            <label>First Name <input name="firstName" required /></label>
+            <label>Last Name <input name="lastName" required /></label>
+            <label>Phone Number <input name="phone" required /></label>
+          </div>
+          <div class="checkout-panel pickup-panel">
+            <h3>Pickup Time</h3>
+            <label>Pickup Date <input name="pickupDate" type="date" required /></label>
+            <label>Pickup Time <select name="pickupTime" id="pickupTime" required></select></label>
+            <fieldset class="payment-choice">
+              <legend>Payment</legend>
+              <label><input type="radio" name="paymentMethod" value="pay_at_store" checked /> Pay at the store</label>
+              <label><input type="radio" name="paymentMethod" value="stripe" /> Pay online</label>
+            </fieldset>
+            <label>Discount Code <input name="discountCode" autocomplete="off" placeholder="Optional" /></label>
+            <p id="paymentNote" class="payment-due">Payment Due At Pickup</p>
+          </div>
+          <div class="order-summary checkout-panel">
+            <h3>Order Details</h3>
+            <div id="flowerCart"></div>
+            <div class="total-row"><span>Total</span><strong id="flowerTotal">$0.00</strong></div>
+            <button class="btn primary full" type="submit">Place Order</button>
+          </div>
+        </form>
+        <div id="flowerConfirmation" class="confirmation glass hidden"></div>
+      </section>
+    </main>
+    <div id="orderPopup" class="order-popup hidden" role="dialog" aria-modal="true" aria-labelledby="orderPopupTitle">
+      <div class="order-popup-card glass">
+        <button id="orderPopupClose" class="order-popup-close" type="button" aria-label="Close order confirmation">&times;</button>
+        <p class="eyebrow" id="orderPopupEyebrow">Order Saved</p>
+        <h2 id="orderPopupTitle">Save Your Order Number</h2>
+        <p id="orderPopupNumber" class="order-popup-number">DCS-100001</p>
+        <p id="orderPopupMessage" class="order-popup-message">Show this number at pickup so the counter can find your order fast.</p>
+        <button id="orderPopupDone" class="btn primary full" type="button">Got It</button>
+      </div>
+    </div>
+    <footer class="site-footer">
+      <div class="brand"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" /></div>
+      <div class="footer-links"><a href="index.html">Home</a><a href="tel:+15107062263">Contact</a></div>
+      <p>&copy; 2026 Da Candy Shop. All rights reserved. 21+ only.</p>
+    </footer>
+    <script>
+      window.DCS_CONVEX_URL = "https://opulent-panda-156.convex.cloud";
+      window.DCS_STRIPE_CHECKOUT_API_URL = "https://opulent-panda-156.convex.site/create-checkout-session";
+      window.DCS_PROMO_SPIN_API_URL = "https://opulent-panda-156.convex.site/promo-spin";
+      window.DCS_PROMO_SPIN_STATUS_API_URL = "https://opulent-panda-156.convex.site/promo-spin-status";
+    </script>
+    <script src="nav.js"></script>
+    <script src="age-gate.js"></script>
+    <script src="flower-promo.js"></script>
+    <script type="module">
+      const strainImages = ["weed-1.avif","weed-2.avif","weed-3.avif","weed-4.avif","weed-5.avif","weed-6.avif","weed-7.avif","weed-8.avif","weed-9.avif"].map(name => `assets/images/${name}`);
+      const fallback = [
+        ["Purple Planet",20,"Hybrid","High","Fresh flower from the current shelf.",98],
+        ["Biscotti",20,"Indica","High","Fresh flower from the current shelf.",97],
+        ["Blueberry",20,"Indica","High","Fresh flower from the current shelf.",96],
+        ["Couchlock Candy",25,"Indica","High","Fresh flower from the current shelf.",100],
+        ["LFG",25,"Hybrid","High","Fresh flower from the current shelf.",99],
+        ["Russian Runtz",25,"Hybrid","High","Fresh flower from the current shelf.",98],
+        ["Gelato 41",25,"Hybrid","High","Fresh flower from the current shelf.",97],
+        ["Gruntz",25,"Hybrid","High","Fresh flower from the current shelf.",96],
+        ["Papaya Runtz",15,"Hybrid","High","Fresh flower from the current shelf.",95],
+        ["Strawberry Cough",15,"Sativa","High","Fresh flower from the current shelf.",94],
+        ["Pink Candy",10,"Hybrid","Medium","Fresh flower from the current shelf.",93]
+      ].map((s, i) => ({ id: String(i + 1), name: s[0], price: s[1], onlinePrice: s[1], grams: 3.5, strainType: s[2], potency: s[3], description: s[4], popularity: s[5], available: true, image: strainImages[i % strainImages.length] }));
+      const cart = [];
+      let inventory = fallback;
+      const money = value => `$${Number(value).toFixed(2)}`;
+      const potencyRank = value => ({ Low: 1, Medium: 2, High: 3 })[value] || 0;
+      const selectedPaymentMethod = () => flowerCheckout.paymentMethod.value;
+      const itemPrice = item => selectedPaymentMethod() === "stripe" ? Number(item.onlinePrice ?? item.price) : Number(item.price);
+      const convexUrl = () => window.DCS_CONVEX_URL || localStorage.getItem("DCS_CONVEX_URL") || "";
+      const stripeCheckoutUrl = () => window.DCS_STRIPE_CHECKOUT_API_URL || localStorage.getItem("DCS_STRIPE_CHECKOUT_API_URL") || "";
+      const promoSpinUrl = () => window.DCS_PROMO_SPIN_API_URL || localStorage.getItem("DCS_PROMO_SPIN_API_URL") || "";
+      const promoSpinStatusUrl = () => window.DCS_PROMO_SPIN_STATUS_API_URL || localStorage.getItem("DCS_PROMO_SPIN_STATUS_API_URL") || "";
+      let activePromo = null;
+      const orderPopup = document.getElementById("orderPopup");
+      const orderPopupEyebrow = document.getElementById("orderPopupEyebrow");
+      const orderPopupTitle = document.getElementById("orderPopupTitle");
+      const orderPopupNumber = document.getElementById("orderPopupNumber");
+      const orderPopupMessage = document.getElementById("orderPopupMessage");
+      const orderPopupClose = document.getElementById("orderPopupClose");
+      const orderPopupDone = document.getElementById("orderPopupDone");
+      const promoWheel = document.getElementById("promoWheel");
+      const promoSpinButton = document.getElementById("promoSpinButton");
+      const promoSpinMessage = document.getElementById("promoSpinMessage");
+      const pickupDateInput = flowerCheckout.elements.pickupDate;
+      const pickupTimeInput = flowerCheckout.elements.pickupTime;
+      const closeOrderPopup = () => orderPopup.classList.add("hidden");
+      function showOrderPopup({ eyebrow, title, orderNumber, message }) {
+        orderPopupEyebrow.textContent = eyebrow;
+        orderPopupTitle.textContent = title;
+        orderPopupNumber.textContent = orderNumber;
+        orderPopupNumber.classList.remove("hidden");
+        orderPopupMessage.textContent = message;
+        orderPopup.classList.remove("hidden");
+      }
+      function showFlowerPopup({ eyebrow = "Heads Up", title, message }) {
+        orderPopupEyebrow.textContent = eyebrow;
+        orderPopupTitle.textContent = title;
+        orderPopupNumber.textContent = "";
+        orderPopupNumber.classList.add("hidden");
+        orderPopupMessage.textContent = message;
+        orderPopup.classList.remove("hidden");
+      }
+      function promoDeviceId() {
+        const existing = localStorage.getItem("dcsPromoDeviceId");
+        if (existing) return existing;
+
+        const next = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        localStorage.setItem("dcsPromoDeviceId", next);
+        return next;
+      }
+      function stableHash(value) {
+        let hash = 5381;
+        for (let index = 0; index < value.length; index += 1) {
+          hash = (hash * 33) ^ value.charCodeAt(index);
+        }
+
+        return (hash >>> 0).toString(36);
+      }
+      function promoBrowserKey() {
+        const screenData = window.screen
+          ? `${screen.width}x${screen.height}x${screen.colorDepth}x${screen.pixelDepth}`
+          : "";
+        const browserData = [
+          navigator.userAgent,
+          navigator.language,
+          (navigator.languages || []).join(","),
+          navigator.platform,
+          navigator.hardwareConcurrency || "",
+          navigator.deviceMemory || "",
+          navigator.maxTouchPoints || "",
+          Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+          screenData,
+          window.devicePixelRatio || ""
+        ].join("|");
+
+        return stableHash(browserData);
+      }
+      function normalizedPhoneKey() {
+        const digits = String(flowerCheckout.elements.phone.value || "").replace(/\D/g, "");
+        return digits.length >= 7 ? stableHash(digits) : "";
+      }
+      function promoRequestBody() {
+        return JSON.stringify({
+          deviceKey: promoDeviceId(),
+          browserKey: promoBrowserKey(),
+          phoneKey: normalizedPhoneKey()
+        });
+      }
+      function savedPromo() {
+        try {
+          return JSON.parse(localStorage.getItem("dcsActivePromo") || "null");
+        } catch (_) {
+          return null;
+        }
+      }
+      function promoWeekKey() {
+        const now = new Date();
+        const yearStart = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+        const dayOfYear = Math.floor((now.getTime() - yearStart.getTime()) / 86400000) + 1;
+        return `${now.getUTCFullYear()}-${String(Math.ceil(dayOfYear / 7)).padStart(2, "0")}`;
+      }
+      function lockPromoSpin(message = "You already spun this week. Try again next week.") {
+        localStorage.setItem("dcsPromoSpinWeek", promoWeekKey());
+        promoSpinButton.disabled = true;
+        promoSpinMessage.textContent = message;
+      }
+      function promoLockMessage(result) {
+        if (!result?.redeemed && result?.prize && result.prize !== "good_luck") {
+          return `You already won ${result.label} this week. Place an order to claim it.`;
+        }
+        if (result?.redeemed) return "You already used this week's spin. Try again next week.";
+        return "You already spun this week. Try again next week.";
+      }
+      async function checkPromoSpinStatus() {
+        const base = promoSpinStatusUrl();
+        if (!base) return;
+        const wasLocked = promoSpinButton.disabled;
+
+        promoSpinButton.disabled = true;
+        if (!wasLocked) promoSpinMessage.textContent = "Checking your weekly spin...";
+
+        try {
+          const response = await fetch(base, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: promoRequestBody()
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(result.error || "Spin status failed.");
+
+          if (!result.eligible) {
+            if (result.prize && result.prize !== "good_luck" && !result.redeemed) setActivePromo(result);
+            lockPromoSpin(promoLockMessage(result));
+            return;
+          }
+
+          if (!wasLocked) {
+            promoSpinButton.disabled = false;
+            promoSpinMessage.textContent = "Wins attach to your order number automatically.";
+          }
+        } catch (error) {
+          console.warn(error);
+          if (!wasLocked) {
+            promoSpinButton.disabled = false;
+            promoSpinMessage.textContent = "Wins attach to your order number automatically.";
+          }
+        }
+      }
+      function setActivePromo(promo) {
+        activePromo = promo && promo.prize !== "good_luck" && !promo.redeemed ? promo : null;
+        if (activePromo) {
+          localStorage.setItem("dcsActivePromo", JSON.stringify(activePromo));
+        } else {
+          localStorage.removeItem("dcsActivePromo");
+        }
+        renderCart();
+      }
+      function promoDiscount(subtotal) {
+        const rate = activePromo?.prize === "ten_percent"
+          ? 0.1
+          : activePromo?.prize === "fifty_percent"
+          ? 0.5
+          : activePromo?.prize === "hundred_percent"
+          ? 1
+          : 0;
+        return Math.round(subtotal * rate * 100) / 100;
+      }
+      function promoNote() {
+        if (!activePromo) return "";
+        if (activePromo.prize === "free_1g") return "Promo attached: Free 1g with completed purchase";
+        if (activePromo.prize === "free_eighth") return "Promo attached: Free 1/8th with completed purchase";
+        if (activePromo.prize === "ten_percent") return "Promo attached: 10% off with completed purchase";
+        if (activePromo.prize === "fifty_percent") return "Promo attached: 50% off with completed purchase";
+        if (activePromo.prize === "hundred_percent") return "Promo attached: 100% off with completed purchase";
+        return "";
+      }
+      function spinSegmentIndex(prize) {
+        if (prize === "ten_percent") return 1;
+        if (prize === "free_1g") return 2;
+        if (prize === "fifty_percent") return 3;
+        if (prize === "free_eighth") return 4;
+        if (prize === "hundred_percent") return 5;
+        return 0;
+      }
+      let promoWheelRotation = 0;
+      function setPromoWheelRotation(rotation) {
+        promoWheel.style.transition = "none";
+        promoWheel.style.transform = `rotate(${rotation}deg)`;
+        promoWheelRotation = rotation;
+      }
+      function easeOutCubic(progress) {
+        return 1 - Math.pow(1 - progress, 3);
+      }
+      function animateRotation(from, to, duration, easing = progress => progress) {
+        return new Promise(resolve => {
+          const startedAt = performance.now();
+
+          function frame(now) {
+            const progress = Math.min(1, (now - startedAt) / duration);
+            setPromoWheelRotation(from + (to - from) * easing(progress));
+
+            if (progress < 1) {
+              requestAnimationFrame(frame);
+            } else {
+              setPromoWheelRotation(to);
+              resolve();
+            }
+          }
+
+          requestAnimationFrame(frame);
+        });
+      }
+      async function animatePromoWheel(prize) {
+        const landingRotation = [330, 270, 210, 150, 90, 30][spinSegmentIndex(prize)];
+        const startRotation = promoWheelRotation;
+        const desiredFastEnd = (landingRotation - 120 + 360) % 360;
+        const naturalFastEnd = (startRotation + 2160) % 360;
+        const fastAdjustment = (desiredFastEnd - naturalFastEnd + 360) % 360;
+        const fastRotation = startRotation + 2160 + fastAdjustment;
+        const finalRotation = fastRotation + 480;
+
+        await animateRotation(startRotation, fastRotation, 3000);
+        await animateRotation(fastRotation, finalRotation, 2000, easeOutCubic);
+      }
+      function formatPickupOption(hour, minute) {
+        const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+        const period = hour >= 12 ? "PM" : "AM";
+        const displayHour = hour % 12 || 12;
+        return { value, label: `${displayHour}:${String(minute).padStart(2, "0")} ${period}` };
+      }
+      function dateValue(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+      function tomorrowDate() {
+        const date = new Date();
+        date.setDate(date.getDate() + 1);
+        return date;
+      }
+      function isAfterTodayCutoff() {
+        const now = new Date();
+        return now.getHours() >= 17;
+      }
+      function minimumPickupDateValue() {
+        return dateValue(isAfterTodayCutoff() ? tomorrowDate() : new Date());
+      }
+      function currentPickupTimeValue() {
+        const now = new Date();
+        let hour = now.getHours();
+        let minute = Math.ceil(now.getMinutes() / 15) * 15;
+        if (minute === 60) {
+          hour += 1;
+          minute = 0;
+        }
+        if (hour < 9) return "09:00";
+        if (hour > 17 || (hour === 17 && minute > 0)) return "17:00";
+        return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+      }
+      function isTodaySelected() {
+        return pickupDateInput.value === dateValue(new Date());
+      }
+      function populatePickupTimes() {
+        const currentValue = pickupTimeInput.value;
+        const earliestToday = currentPickupTimeValue();
+        const options = [];
+        for (let hour = 9; hour <= 17; hour++) {
+          for (let minute = 0; minute < 60; minute += 15) {
+            if (hour === 17 && minute > 0) continue;
+            const option = formatPickupOption(hour, minute);
+            if (isTodaySelected() && option.value < earliestToday) continue;
+            options.push(option);
+          }
+        }
+        pickupTimeInput.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join("");
+        pickupTimeInput.value = options.some(option => option.value === currentValue) ? currentValue : options[0]?.value || "";
+      }
+      function refreshPickupControls() {
+        const minimumDate = minimumPickupDateValue();
+        pickupDateInput.min = minimumDate;
+        if (!pickupDateInput.value || pickupDateInput.value < minimumDate) pickupDateInput.value = minimumDate;
+        populatePickupTimes();
+      }
+      function validatePickupDateTime() {
+        refreshPickupControls();
+        if (pickupDateInput.value < pickupDateInput.min) return "Choose a pickup date that has not passed.";
+        if (isTodaySelected() && pickupTimeInput.value < currentPickupTimeValue()) return "Choose a pickup time that has not passed.";
+        return "";
+      }
+      async function convexCall(kind, path, args) {
+        const base = convexUrl();
+        if (!base) throw new Error("Convex URL is not configured.");
+        const response = await fetch(`${base.replace(/\/$/, "")}/api/${kind}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path, args, format: "json" })
+        });
+        if (!response.ok) throw new Error("Convex request failed");
+        const payload = await response.json();
+        if (payload.status === "error") throw new Error(payload.errorMessage || "Convex request failed");
+        return payload.value;
+      }
+      async function createStripeCheckoutSession(orderId) {
+        const base = stripeCheckoutUrl();
+        if (!base) throw new Error("Stripe checkout URL is not configured.");
+        if (!orderId) throw new Error("The order was saved, but its checkout ID was missing. Please try again.");
+
+        const response = await fetch(base, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderId })
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || "Stripe checkout session failed.");
+        return payload;
+      }
+      function savedOrderId(saved) {
+        const order = savedOrder(saved);
+        if (typeof order === "string") return order;
+        return order?.orderId || order?.id || order?._id || null;
+      }
+      function savedOrder(saved) {
+        if (typeof saved !== "string") return saved;
+
+        try {
+          return JSON.parse(saved);
+        } catch (_) {
+          return saved;
+        }
+      }
+      async function loadInventory() {
+        try {
+          const live = await convexCall("query", "inventory:listInventory", {});
+          if (Array.isArray(live)) {
+            inventory = live.map((item, index) => ({
+              ...item,
+              id: item._id,
+              price: Number(item.price || 0),
+              onlinePrice: Number(item.onlinePrice ?? item.price ?? 0),
+              grams: Number(item.grams ?? 3.5),
+              available: item.available ?? Number(item.quantity ?? 0) > 0,
+              image: item.image || strainImages[index % strainImages.length],
+              popularity: item.popularity || 0
+            }));
+          }
+        } catch (error) {
+          console.warn(error);
+        }
+        render();
+      }
+      function renderCart() {
+        const subtotal = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
+        const discount = promoDiscount(subtotal);
+        const total = Math.max(0, subtotal - discount);
+        const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const promoLine = activePromo ? `<div class="cart-line promo-cart-line"><span>${promoNote()}</span><strong>${discount ? `-${money(discount)}` : "Added"}</strong></div>` : "";
+        flowerCart.innerHTML = cart.length ? `${cart.map((item, index) => `<div class="cart-line"><span>${item.name} <small>${Number(item.grams ?? 3.5)}g x ${item.quantity}</small></span><strong>${money(itemPrice(item) * item.quantity)}</strong><button type="button" data-remove="${index}">Remove</button></div>`).join("")}${promoLine}` : "<p>Your candy bag is empty.</p>";
+        flowerTotal.textContent = money(total);
+        headerCartCount.textContent = count;
+        headerCart.setAttribute("aria-label", count ? `View checkout cart, ${count} item${count === 1 ? "" : "s"}` : "View checkout cart");
+      }
+      function render() {
+        const search = flowerSearch.value.toLowerCase();
+        let rows = inventory.filter(item => item.name.toLowerCase().includes(search) && (!flowerType.value || item.strainType === flowerType.value));
+        rows.sort((a,b) => flowerSort.value === "potency" ? potencyRank(b.potency) - potencyRank(a.potency) : flowerSort.value === "low" ? a.price - b.price : flowerSort.value === "high" ? b.price - a.price : (b.popularity || 0) - (a.popularity || 0));
+        flowerGrid.innerHTML = rows.length
+          ? rows.map(item => {
+              const isAvailable = item.available ?? Number(item.quantity ?? 0) > 0;
+              const stockText = isAvailable ? "Available" : "Not Available";
+              const onlineLabel = Number(item.onlinePrice ?? item.price) === Number(item.price) ? "" : `<span>Online ${money(item.onlinePrice)}</span>`;
+              return `<article class="product-card strain-card"><div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${item.image}" alt="${item.name} strain" /></div><div class="card-top"><span class="badge">${item.strainType}</span><span class="stock-pill">${stockText}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="strain-price-row"><strong>Pickup ${money(item.price)}</strong>${onlineLabel || `<span>${item.potency}</span>`}</div><div class="specs"><span>${Number(item.grams ?? 3.5)}g</span><span>${item.potency} Potency</span></div><div class="card-order-row"><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" ${isAvailable ? "" : "disabled"} /></label><button class="btn small" data-id="${item.id}" ${isAvailable ? "" : "disabled"}>${isAvailable ? "Add to Cart" : "Unavailable"}</button></div></article>`;
+            }).join("")
+          : "<div class=\"state-card glass\">No strains are currently available.</div>";
+      }
+      flowerGrid.addEventListener("click", event => {
+        const id = event.target.dataset.id;
+        if (!id) return;
+        const item = inventory.find(strain => strain.id === id || strain._id === id);
+        if (!item) return;
+        if ((item.available ?? Number(item.quantity ?? 0) > 0) === false) {
+          return showFlowerPopup({
+            title: "Not Available",
+            message: `${item.name} is not available right now.`
+          });
+        }
+        const quantity = Number(document.getElementById(`qty-${id}`).value);
+        cart.push({ productId: id, inventoryId: item._id, name: item.name, price: item.price, onlinePrice: item.onlinePrice ?? item.price, grams: Number(item.grams ?? 3.5), quantity });
+        renderCart();
+        event.target.textContent = "Added";
+        window.setTimeout(() => {
+          event.target.textContent = "Add to Cart";
+        }, 900);
+      });
+      flowerCart.addEventListener("click", event => {
+        if (event.target.dataset.remove) {
+          cart.splice(Number(event.target.dataset.remove), 1);
+          renderCart();
+        }
+      });
+      headerCart.addEventListener("click", () => {
+        document.getElementById("checkout").scrollIntoView({ behavior: "smooth" });
+      });
+      orderPopupClose.addEventListener("click", closeOrderPopup);
+      orderPopupDone.addEventListener("click", closeOrderPopup);
+      orderPopup.addEventListener("click", event => {
+        if (event.target === orderPopup) closeOrderPopup();
+      });
+      promoSpinButton.addEventListener("click", async () => {
+        const base = promoSpinUrl();
+        if (!base) {
+          return showFlowerPopup({
+            title: "Spinner Unavailable",
+            message: "The promo spinner is not configured right now."
+          });
+        }
+        if (!normalizedPhoneKey()) {
+          document.getElementById("checkout").scrollIntoView({ behavior: "smooth" });
+          return showFlowerPopup({
+            title: "Enter Phone First",
+            message: "Enter your phone number in checkout before spinning. Rewards require a completed purchase to claim."
+          });
+        }
+
+        promoSpinButton.disabled = true;
+        promoSpinButton.textContent = "Spinning...";
+        promoSpinMessage.textContent = "Checking your weekly spin...";
+
+        try {
+          const response = await fetch(base, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: promoRequestBody()
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(result.error || "Spin failed.");
+          localStorage.setItem("dcsPromoSpinWeek", promoWeekKey());
+
+          promoSpinMessage.textContent = "Spinning...";
+          await animatePromoWheel(result.prize);
+
+          if (!result.eligible) {
+            promoSpinMessage.textContent = promoLockMessage(result);
+            } else if (result.prize === "good_luck") {
+              promoSpinMessage.textContent = "Good luck next time. You can spin again next week.";
+            } else {
+              promoSpinMessage.textContent = `${result.label} won. Complete a purchase to claim it.`;
+            }
+
+          setActivePromo(result);
+          promoSpinButton.textContent = "Spin";
+          promoSpinButton.disabled = true;
+        } catch (error) {
+          console.warn(error);
+          promoSpinMessage.textContent = error.message || "Spin could not be started.";
+          promoSpinButton.disabled = false;
+          promoSpinButton.textContent = "Spin";
+        }
+      });
+      flowerCheckout.paymentMethod.forEach(input => {
+        input.addEventListener("change", () => {
+          paymentNote.textContent = input.value === "stripe" && input.checked ? "Secure Online Payment" : "Payment Due At Pickup";
+          renderCart();
+        });
+      });
+      flowerCheckout.elements.phone.addEventListener("change", () => {
+        if (normalizedPhoneKey()) checkPromoSpinStatus();
+      });
+      pickupDateInput.addEventListener("change", refreshPickupControls);
+      flowerCheckout.addEventListener("submit", async event => {
+        event.preventDefault();
+        if (!cart.length) {
+          return showFlowerPopup({
+            title: "Add Flower First",
+            message: "Add at least one strain before placing an order."
+          });
+        }
+        const pickupError = validatePickupDateTime();
+        if (pickupError) {
+          return showFlowerPopup({
+            title: "Choose A Valid Pickup Time",
+            message: pickupError
+          });
+        }
+        const data = Object.fromEntries(new FormData(flowerCheckout));
+        if (activePromo && data.discountCode?.trim()) {
+          return showFlowerPopup({
+            title: "One Reward Per Order",
+            message: "Use either your spin reward or a discount code, not both."
+          });
+        }
+        const payOnline = data.paymentMethod === "stripe";
+        const subtotal = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
+        const total = Math.max(0, subtotal - promoDiscount(subtotal));
+        const pricedCart = cart.map(item => ({
+          productId: item.productId,
+          inventoryId: item.inventoryId,
+          name: item.name,
+          price: itemPrice(item),
+          grams: Number(item.grams ?? 3.5),
+          quantity: item.quantity
+        }));
+        const orderInput = {
+          customerName: `${data.firstName} ${data.lastName}`,
+          phone: data.phone,
+          pickupDate: data.pickupDate,
+          pickupTime: data.pickupTime,
+          items: pricedCart,
+          total,
+          paymentMethod: data.paymentMethod,
+          promoSpinId: activePromo?.spinId,
+          discountCode: activePromo ? undefined : String(data.discountCode || "").trim()
+        };
+        let orderNumber = `DCS-${Number(localStorage.getItem("dcsOrderSeed") || 100000) + 1}`;
+        let orderId = null;
+        let confirmedTotal = total;
+        let confirmedPromo = activePromo;
+        const submitButton = flowerCheckout.querySelector("button[type='submit']");
+        submitButton.disabled = true;
+        submitButton.textContent = payOnline ? "Opening Stripe..." : "Placing Order...";
+        try {
+          const saved = await convexCall("mutation", "orders:createOrder", orderInput);
+          orderId = savedOrderId(saved);
+          const savedOrderDetails = savedOrder(saved);
+          if (savedOrderDetails?.orderNumber) orderNumber = savedOrderDetails.orderNumber;
+          if (typeof savedOrderDetails?.total === "number") confirmedTotal = savedOrderDetails.total;
+          if (savedOrderDetails?.promo) confirmedPromo = savedOrderDetails.promo;
+          if (payOnline && !orderId) throw new Error("The order was saved, but Convex did not return its checkout ID.");
+        } catch (error) {
+          console.warn(error);
+          submitButton.disabled = false;
+          submitButton.textContent = "Place Order";
+          return showFlowerPopup({
+            eyebrow: "Order Not Saved",
+            title: "Try Again",
+            message: `We could not save your order. ${error.message || "Please try again."}`
+          });
+        }
+        if (payOnline) {
+          try {
+            const session = await createStripeCheckoutSession(orderId);
+            if (!session.url) throw new Error("Stripe did not return a checkout URL.");
+            window.location.href = session.url;
+            return;
+          } catch (error) {
+            console.warn(error);
+            submitButton.disabled = false;
+            submitButton.textContent = "Place Order";
+            return showFlowerPopup({
+              eyebrow: "Checkout Error",
+              title: "Stripe Could Not Start",
+              message: `Stripe checkout could not be started. ${error.message || "Please try again."}`
+            });
+          }
+        }
+        localStorage.setItem("dcsOrderSeed", orderNumber.replace("DCS-", ""));
+        flowerConfirmation.classList.remove("hidden");
+        flowerConfirmation.innerHTML = `<h2>Sweet, You're Set</h2><h3>${orderNumber}</h3><p>Pickup Time: ${data.pickupDate} at ${data.pickupTime}</p><p>Payment: Pay at the store</p>${confirmedPromo ? `<p>${confirmedPromo.label}</p>` : ""}${cart.map(item => `<p>${item.name} ${Number(item.grams ?? 3.5)}g x ${item.quantity}</p>`).join("")}<strong>Total: ${money(confirmedTotal)}</strong>`;
+        showOrderPopup({
+          eyebrow: "Pickup Order Saved",
+          title: "Save Your Order Number",
+          orderNumber,
+          message: confirmedPromo ? `${confirmedPromo.label}. You chose pay at the store, so the reward is valid after you complete the pickup purchase.` : "Take a screenshot or write this down. Show this order number when you pick up and pay at the store."
+        });
+        setActivePromo(null);
+        cart.length = 0;
+        renderCart();
+        flowerCheckout.reset();
+        refreshPickupControls();
+        paymentNote.textContent = "Payment Due At Pickup";
+        submitButton.disabled = false;
+        submitButton.textContent = "Place Order";
+      });
+      [flowerSearch, flowerType, flowerSort].forEach(input => input.addEventListener("input", render));
+      async function showStripeReturnConfirmation() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("payment") !== "success") return;
+
+        const orderId = params.get("orderId");
+        let orderNumber = "Your order";
+        let pickupText = "Your pickup order is being prepared.";
+        let orderPromo = null;
+
+        if (orderId) {
+          try {
+            const order = await convexCall("query", "orders:getOrderConfirmation", { id: orderId });
+            if (order?.orderNumber) orderNumber = order.orderNumber;
+            if (order?.pickupDate && order?.pickupTime) {
+              pickupText = `Pickup Time: ${order.pickupDate} at ${order.pickupTime}`;
+            }
+            if (order?.promo) orderPromo = order.promo;
+          } catch (error) {
+            console.warn(error);
+          }
+        }
+
+        flowerConfirmation.classList.remove("hidden");
+        flowerConfirmation.innerHTML = `<h2>Payment Received</h2><h3>${orderNumber}</h3><p>${pickupText}</p>${orderPromo ? `<p>Promo: ${orderPromo.label}</p>` : ""}<p>Save this order number for pickup.</p>`;
+        showOrderPopup({
+          eyebrow: "Payment Received",
+          title: "Save Your Order Number",
+          orderNumber,
+          message: orderPromo ? `Your online payment went through. Promo: ${orderPromo.label}. Save this number and show it at pickup.` : "Your online payment went through. Save this number and show it at pickup so the counter can match your order."
+        });
+        setActivePromo(null);
+        document.getElementById("checkout").scrollIntoView({ behavior: "smooth" });
+      }
+      showStripeReturnConfirmation();
+      const storedPromo = savedPromo();
+      if (storedPromo) {
+        setActivePromo(storedPromo);
+        lockPromoSpin(`${storedPromo.label} is ready. Place an order to claim it.`);
+      } else if (localStorage.getItem("dcsPromoSpinWeek") === promoWeekKey()) {
+        lockPromoSpin();
+      }
+      checkPromoSpinStatus();
+      refreshPickupControls();
+      renderCart();
+      loadInventory();
+      window.setInterval(refreshPickupControls, 60000);
+      window.setInterval(loadInventory, 60000);
+    </script>
+  </body>
+</html>

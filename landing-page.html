@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Options | Da Candy Shop</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="smoke-layer" aria-hidden="true"></div>
+    <main class="qr-landing link-landing modern-pay-page">
+      <section class="link-landing-panel">
+        <div class="link-logo-card">
+          <img class="link-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" />
+        </div>
+        <p class="eyebrow">Secure Counter Payment</p>
+        <h1>Da Candy Shop</h1>
+        <p>Enter the amount from the counter and choose your payment lane.</p>
+        <nav class="landing-nav-buttons" aria-label="Customer navigation">
+          <a class="landing-nav-button" href="index.html">Home</a>
+          <a class="landing-nav-button" href="flower.html">Flower Menu</a>
+        </nav>
+        <form id="qrStripePayment" class="qr-stripe-form" aria-label="Pay with Stripe">
+          <div class="payment-form-head">
+            <img src="assets/logos/stripe.png" alt="Stripe" />
+          </div>
+          <label>Amount
+            <input name="amount" type="number" min="0.01" step="0.01" inputmode="decimal" value="10.00" required />
+          </label>
+          <label>Name
+            <input name="customerName" autocomplete="name" placeholder="Name or initials" />
+          </label>
+          <label>Note
+            <input name="note" placeholder="Optional note" />
+          </label>
+          <button class="link-payment-button primary qr-stripe-submit" type="submit">
+            <span>Pay With Stripe</span>
+          </button>
+          <p id="qrPaymentMessage" class="qr-payment-message" role="status"></p>
+        </form>
+        <div class="link-button-stack">
+          <a class="link-payment-button primary" href="https://cash.app/$reardenmtl" target="_blank" rel="noopener noreferrer" aria-label="Pay with Cash App">
+            <img src="assets/logos/cash-app-clean.png" alt="" />
+            <span>Cash App</span>
+          </a>
+        </div>
+        <p class="link-landing-foot">1120 Albany Ave, Hartford, CT 06112</p>
+      </section>
+    </main>
+    <script src="age-gate.js"></script>
+    <script>
+      window.DCS_IN_STORE_PAYMENT_API_URL = "https://opulent-panda-156.convex.site/create-in-store-payment-session";
+      window.DCS_IN_STORE_PAYMENT_CONFIRM_API_URL = "https://opulent-panda-156.convex.site/confirm-in-store-payment-session";
+
+      const paymentForm = document.getElementById("qrStripePayment");
+      const paymentMessage = document.getElementById("qrPaymentMessage");
+      const paymentParams = new URLSearchParams(window.location.search);
+
+      async function confirmReturnedPayment() {
+        const sessionId = paymentParams.get("session_id");
+        if (paymentParams.get("payment") !== "success" || !sessionId) return;
+
+        paymentMessage.textContent = "Payment received. Confirming with Stripe...";
+
+        try {
+          const response = await fetch(window.DCS_IN_STORE_PAYMENT_CONFIRM_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId })
+          });
+          const payload = await response.json().catch(() => ({}));
+
+          if (!response.ok || !payload.ok) {
+            throw new Error(payload.error || payload.message || "Payment could not be confirmed yet.");
+          }
+
+          paymentMessage.textContent = "Payment confirmed. Please show this screen to the counter.";
+        } catch (error) {
+          console.warn(error);
+          paymentMessage.textContent = "Payment received. The counter can verify it in Stripe if the admin screen has not updated yet.";
+        }
+      }
+
+      if (paymentParams.get("payment") === "cancelled") {
+        paymentMessage.textContent = "Payment was cancelled. You can enter the amount again when ready.";
+      }
+
+      confirmReturnedPayment();
+
+      paymentForm.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const submitButton = paymentForm.querySelector("button[type='submit']");
+        const data = Object.fromEntries(new FormData(paymentForm));
+        const amount = Number(data.amount);
+
+        if (!Number.isFinite(amount) || amount <= 0) {
+          paymentMessage.textContent = "Amount must be greater than $0.00.";
+          return;
+        }
+
+        submitButton.disabled = true;
+        paymentMessage.textContent = "Opening secure Stripe checkout...";
+
+        try {
+          const response = await fetch(window.DCS_IN_STORE_PAYMENT_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              amount,
+              customerName: String(data.customerName || "").trim() || undefined,
+              note: String(data.note || "").trim() || undefined
+            })
+          });
+          const payload = await response.json().catch(() => ({}));
+
+          if (!response.ok) throw new Error(payload.error || "Stripe payment could not be started.");
+          if (!payload.url) throw new Error("Stripe did not return a checkout URL.");
+
+          window.location.href = payload.url;
+        } catch (error) {
+          console.warn(error);
+          paymentMessage.textContent = error.message || "Stripe payment could not be started.";
+          submitButton.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
