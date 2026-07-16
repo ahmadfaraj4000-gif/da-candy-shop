@@ -50,7 +50,7 @@
           <div>
             <h3>Pickup Scheduling</h3>
             <label>Pickup Date <input name="pickupDate" type="date" required /></label>
-            <label>Pickup Time <input name="pickupTime" type="time" min="09:00" max="17:00" step="900" required oninput="this.setCustomValidity('')" onchange="this.setCustomValidity('')" oninvalid="this.setCustomValidity(this.validity.rangeUnderflow ? 'Pick up time must be 9:00 AM or later.' : this.validity.rangeOverflow ? 'Pick up time must be 5:00 PM or earlier.' : this.validity.stepMismatch ? 'Pick up time must be in 15-minute intervals.' : 'Pick up time is required.')" /></label>
+            <label>Pickup Time <input name="pickupTime" type="time" min="08:00" max="22:00" step="900" required oninput="this.setCustomValidity('')" onchange="this.setCustomValidity('')" oninvalid="this.setCustomValidity(this.validity.rangeUnderflow ? 'Pick up time must be 8:00 AM or later.' : this.validity.rangeOverflow ? 'Pick up time must be 10:00 PM or earlier.' : this.validity.stepMismatch ? 'Pick up time must be in 15-minute intervals.' : 'Pick up time is required.')" /></label>
             <p class="payment-due">Payment Due At Pickup</p>
           </div>
           <div class="order-summary">
@@ -132,10 +132,15 @@
         const payload = await response.json();
         return payload.value;
       }
+      const pickupDateInput = checkoutForm.elements.pickupDate;
+      const todayValue = new Date().toLocaleDateString("en-CA");
+      pickupDateInput.min = todayValue;
       checkoutForm.addEventListener("submit", async e => {
         e.preventDefault();
         if (!cart.length) return alert("Add at least one strain before placing an order.");
         const data = Object.fromEntries(new FormData(checkoutForm));
+        const pickupDay = new Date(`${data.pickupDate}T12:00:00`).getDay();
+        if (pickupDay === 0 || pickupDay === 6) return alert("Pickup is available Monday through Friday.");
         const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
         let orderNumber = `DCS-${Number(localStorage.getItem("dcsOrderSeed") || 100000) + 1}`;
         const orderInput = { customerName: `${data.firstName} ${data.lastName}`, phone: data.phone, pickupDate: data.pickupDate, pickupTime: data.pickupTime, items: [...cart], total };
@@ -144,6 +149,7 @@
           if (saved?.orderNumber) orderNumber = saved.orderNumber;
         } catch (error) {
           console.warn(error);
+          return alert(error.message || "The order could not be saved. Please try again.");
         }
         localStorage.setItem("dcsOrderSeed", orderNumber.replace("DCS-", ""));
         const order = { orderNumber, ...orderInput, status: "Pending", createdAt: Date.now() };

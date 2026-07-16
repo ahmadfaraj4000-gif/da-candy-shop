@@ -379,12 +379,25 @@
         date.setDate(date.getDate() + 1);
         return date;
       }
+      function isBusinessDay(date) {
+        const day = date.getDay();
+        return day >= 1 && day <= 5;
+      }
+      function nextBusinessDay(date) {
+        const next = new Date(date);
+        while (!isBusinessDay(next)) next.setDate(next.getDate() + 1);
+        return next;
+      }
+      function selectedPickupDate() {
+        const [year, month, day] = pickupDateInput.value.split("-").map(Number);
+        return new Date(year, month - 1, day);
+      }
       function isAfterTodayCutoff() {
         const now = new Date();
-        return now.getHours() >= 17;
+        return now.getHours() >= 22;
       }
       function minimumPickupDateValue() {
-        return dateValue(isAfterTodayCutoff() ? tomorrowDate() : new Date());
+        return dateValue(nextBusinessDay(isAfterTodayCutoff() ? tomorrowDate() : new Date()));
       }
       function currentPickupTimeValue() {
         const now = new Date();
@@ -394,8 +407,8 @@
           hour += 1;
           minute = 0;
         }
-        if (hour < 9) return "09:00";
-        if (hour > 17 || (hour === 17 && minute > 0)) return "17:00";
+        if (hour < 8) return "08:00";
+        if (hour > 22 || (hour === 22 && minute > 0)) return "22:00";
         return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
       }
       function isTodaySelected() {
@@ -405,9 +418,9 @@
         const currentValue = pickupTimeInput.value;
         const earliestToday = currentPickupTimeValue();
         const options = [];
-        for (let hour = 9; hour <= 17; hour++) {
+        for (let hour = 8; hour <= 22; hour++) {
           for (let minute = 0; minute < 60; minute += 15) {
-            if (hour === 17 && minute > 0) continue;
+            if (hour === 22 && minute > 0) continue;
             const option = formatPickupOption(hour, minute);
             if (isTodaySelected() && option.value < earliestToday) continue;
             options.push(option);
@@ -425,6 +438,7 @@
       function validatePickupDateTime() {
         refreshPickupControls();
         if (pickupDateInput.value < pickupDateInput.min) return "Choose a pickup date that has not passed.";
+        if (!isBusinessDay(selectedPickupDate())) return "Pickup is available Monday through Friday.";
         if (isTodaySelected() && pickupTimeInput.value < currentPickupTimeValue()) return "Choose a pickup time that has not passed.";
         return "";
       }
