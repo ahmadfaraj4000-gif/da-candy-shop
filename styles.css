@@ -48,7 +48,7 @@ body::before {
   opacity: .94;
   background:
     linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.2)),
-    url("assets/images/premium-smoke-background.png") center bottom / cover no-repeat;
+    url("assets/images/premium-smoke-background.webp") center bottom / cover no-repeat;
   mix-blend-mode: screen;
 }
 body::after {
@@ -2236,7 +2236,7 @@ body::before {
   mix-blend-mode: screen;
   background:
     linear-gradient(180deg, rgba(0,0,0,.56), rgba(0,0,0,.82)),
-    url("assets/images/premium-smoke-background.png") center bottom / cover no-repeat;
+    url("assets/images/premium-smoke-background.webp") center bottom / cover no-repeat;
 }
 
 body::after {
@@ -2506,7 +2506,7 @@ body::before {
   mix-blend-mode: screen;
   background:
     radial-gradient(ellipse at 50% 42%, rgba(0,0,0,.86) 0 34%, rgba(0,0,0,.32) 58%, rgba(0,0,0,.08) 100%),
-    url("assets/images/premium-smoke-background.png") center bottom / cover no-repeat;
+    url("assets/images/premium-smoke-background.webp") center bottom / cover no-repeat;
 }
 
 body::after {

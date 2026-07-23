@@ -28,7 +28,7 @@
     promo.innerHTML = `
       <section class="flower-promo-panel">
         <button class="flower-promo-close" type="button" aria-label="Close promotion">×</button>
-        <img class="flower-promo-logo" src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" />
+        <img class="flower-promo-logo" src="assets/logos/da-candy-shop-logo.webp" alt="Da Candy Shop" />
         <p class="eyebrow">New Customer Special</p>
         <h2 id="flowerPromoTitle">Free gram for new customers</h2>
         <p>Place your first pickup order and ask the counter about the new customer free gram.</p>

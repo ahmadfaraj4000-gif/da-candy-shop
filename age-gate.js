@@ -14,7 +14,7 @@
   gate.innerHTML = `
     <div class="age-gate-panel">
       <div class="age-gate-brand">
-        <img src="assets/logos/da-candy-shop-logo.png" alt="Da Candy Shop" />
+        <img src="assets/logos/da-candy-shop-logo.webp" alt="Da Candy Shop" />
       </div>
       <h2 id="ageGateTitle">Are you 21 or older?</h2>
       <label class="age-check"><input id="ageGateCheck" type="checkbox" /> Yes, I am 21 or older.</label>
