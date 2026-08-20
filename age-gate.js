@@ -16,22 +16,33 @@
       <div class="age-gate-brand">
         <img src="assets/logos/da-candy-shop-logo.webp" alt="Da Candy Shop" />
       </div>
-      <h2 id="ageGateTitle">Are you 21 or older?</h2>
-      <label class="age-check"><input id="ageGateCheck" type="checkbox" /> Yes, I am 21 or older.</label>
-      <button id="ageGateEnter" class="btn primary full" type="button" disabled>Enter Site</button>
+      <p class="eyebrow">Age verification</p>
+      <h2 id="ageGateTitle">Welcome to<br />Da Candy Shop.</h2>
+      <p class="age-gate-copy">You must be 21 or older to enter this website.</p>
+      <div class="age-gate-actions">
+        <button id="ageGateEnter" class="btn primary full" type="button">I&rsquo;m 21 or older</button>
+        <button id="ageGateExit" class="btn ghost full" type="button">I&rsquo;m under 21</button>
+      </div>
+      <p class="age-gate-note">By entering, you confirm that you are of legal age.</p>
     </div>
   `;
   document.body.appendChild(gate);
 
-  const checkbox = gate.querySelector("#ageGateCheck");
   const enter = gate.querySelector("#ageGateEnter");
-  checkbox.focus();
-  checkbox.addEventListener("change", () => {
-    enter.disabled = !checkbox.checked;
-  });
+  const exit = gate.querySelector("#ageGateExit");
+  enter.focus();
   enter.addEventListener("click", () => {
-    if (!checkbox.checked) return;
     localStorage.setItem(key, "yes");
     gate.remove();
+  });
+  exit.addEventListener("click", () => {
+    gate.querySelector(".age-gate-panel").innerHTML = `
+      <div class="age-gate-brand">
+        <img src="assets/logos/da-candy-shop-logo.webp" alt="Da Candy Shop" />
+      </div>
+      <p class="eyebrow">Sorry</p>
+      <h2>You must be 21 or older.</h2>
+      <p class="age-gate-copy">This website is not available to visitors under 21.</p>
+    `;
   });
 })();

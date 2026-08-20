@@ -7,21 +7,21 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="smoke-layer" aria-hidden="true"></div>
     <main class="qr-landing link-landing modern-pay-page">
       <section class="link-landing-panel">
         <div class="link-logo-card">
           <img class="link-logo" src="assets/logos/da-candy-shop-logo.webp" alt="Da Candy Shop" />
         </div>
-        <p class="eyebrow">Secure Counter Payment</p>
-        <h1>Da Candy Shop</h1>
-        <p>Enter the amount from the counter and choose your payment lane.</p>
+        <div class="status-chip"><span></span> Secure counter payment</div>
+        <h1>Pay at the shop.</h1>
+        <p>Enter the amount shown at the counter, then continue through secure Stripe checkout.</p>
         <nav class="landing-nav-buttons" aria-label="Customer navigation">
           <a class="landing-nav-button" href="index.html">Home</a>
           <a class="landing-nav-button" href="flower.html">Flower Menu</a>
         </nav>
         <form id="qrStripePayment" class="qr-stripe-form" aria-label="Pay with Stripe">
           <div class="payment-form-head">
+            <div><span>Secure checkout</span><strong>Pay with Stripe</strong></div>
             <img src="assets/logos/stripe.webp" alt="Stripe" />
           </div>
           <label>Amount
@@ -34,7 +34,7 @@
             <input name="note" placeholder="Optional note" />
           </label>
           <button class="link-payment-button primary qr-stripe-submit" type="submit">
-            <span>Pay With Stripe</span>
+            <span>Continue to Stripe</span>
           </button>
           <p id="qrPaymentMessage" class="qr-payment-message" role="status"></p>
         </form>

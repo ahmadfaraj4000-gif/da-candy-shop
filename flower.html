@@ -7,15 +7,15 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="smoke-layer" aria-hidden="true"></div>
     <header class="site-header flower-header">
       <a class="brand" href="index.html"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.webp" alt="Da Candy Shop" /></a>
       <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
       <nav class="site-nav">
         <a href="index.html">Home</a>
         <a href="flower.html">Flower</a>
+        <a href="about.html">About</a>
         <a href="landing-page.html">In-Store Payment</a>
-        <a href="tel:+15107062263">Contact</a>
+        <a href="contact.html">Visit</a>
       </nav>
       <button id="headerCart" class="header-cart" type="button" aria-label="View checkout cart">
         <span class="header-cart-icon" aria-hidden="true"></span>
@@ -25,14 +25,14 @@
     <main>
       <section class="section shop-layout flower-menu-shell">
         <div class="section-heading wide">
-          <p class="eyebrow">Flower Counter</p>
-          <h1>Flower Menu</h1>
-          <p class="tagline">Choose your flower and schedule pickup.</p>
+          <p class="eyebrow">Live shelf</p>
+          <h1>Find your flower.</h1>
+          <p class="tagline">Browse what&rsquo;s available now, build your bag, and schedule a Hartford pickup.</p>
         </div>
         <aside class="filter-panel glass">
           <div class="filter-title">
             <span>Browse</span>
-            <strong>Menu</strong>
+            <strong>Filter the shelf</strong>
           </div>
           <label>Search <input id="flowerSearch" type="search" placeholder="Search strains" /></label>
           <label>Type <select id="flowerType"><option value="">All</option><option>Indica</option><option>Sativa</option><option>Hybrid</option></select></label>
@@ -71,7 +71,7 @@
         <div id="flowerGrid" class="product-grid strain-grid"></div>
       </section>
       <section id="checkout" class="section checkout-section modern-checkout">
-        <div class="section-heading"><p class="eyebrow">Pickup Only</p><h2>Bag it up</h2></div>
+        <div class="section-heading"><p class="eyebrow">Checkout</p><h2>Finish your pickup.</h2><p>Tell us who&rsquo;s coming and when. Choose online payment or pay when you arrive.</p></div>
         <form id="flowerCheckout" class="checkout-grid glass">
           <div class="checkout-panel customer-panel">
             <h3>Customer Information</h3>
@@ -113,7 +113,7 @@
     </div>
     <footer class="site-footer">
       <div class="brand"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.webp" alt="Da Candy Shop" /></div>
-      <div class="footer-links"><a href="index.html">Home</a><a href="tel:+15107062263">Contact</a></div>
+      <div class="footer-links"><a href="index.html">Home</a><a href="about.html">About</a><a href="contact.html">Visit</a></div>
       <p>&copy; 2026 Da Candy Shop. All rights reserved. 21+ only.</p>
     </footer>
     <script>

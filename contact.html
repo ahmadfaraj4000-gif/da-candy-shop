@@ -7,96 +7,41 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="smoke-layer" aria-hidden="true"></div>
     <header class="site-header">
       <a class="brand" href="index.html"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.webp" alt="Da Candy Shop" /></a>
       <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
       <nav class="site-nav">
         <a href="index.html">Home</a>
         <a href="flower.html">Flower</a>
+        <a href="about.html">About</a>
         <a href="landing-page.html">In-Store Payment</a>
-        <a href="tel:+15107062263">Contact</a>
+        <a href="contact.html">Visit</a>
       </nav>
     </header>
     <main>
-      <section class="section about-hero">
-        <p class="eyebrow">Contact</p>
-        <h1>Da Candy Shop</h1>
-        <p>Call, visit, or send a message.</p>
+      <section class="section about-hero contact-hero">
+        <p class="eyebrow">Hartford, Connecticut</p>
+        <h1>Come through.</h1>
+        <p>Find our hours, address, and directions before you head over.</p>
       </section>
-      <section class="section split">
-        <div class="glass text-panel">
-          <h2>Contact</h2>
-          <p>For pickup orders or questions, call the store or send a message below.</p>
-          <h2>Pickup</h2>
-          <p>Pickup orders are available Monday-Friday during business hours.</p>
-        </div>
-        <div class="store-photos">
-          <div></div><div></div><div></div>
-        </div>
-      </section>
-      <section class="section testimonials">
-        <h2>Customer Notes</h2>
-        <div class="product-grid">
-          <blockquote class="glass">"Fast pickup and helpful service."<span>- Customer</span></blockquote>
-          <blockquote class="glass">"Easy online ordering."<span>- Customer</span></blockquote>
-          <blockquote class="glass">"Clear prices and quick checkout."<span>- Customer</span></blockquote>
-        </div>
-      </section>
-      <section class="section contact-page-grid">
-        <form id="contactForm" class="glass">
-          <h2>Drop Us A Note</h2>
-          <label>Name <input name="name" required /></label>
-          <label>Email <input name="email" type="email" required /></label>
-          <label>Phone <input name="phone" required /></label>
-          <label>Message <textarea name="message" rows="5" required></textarea></label>
-          <button class="btn primary" type="submit">Send Message</button>
-          <p id="formStatus" role="status"></p>
-        </form>
-        <div class="glass">
-          <h2>Store Information</h2>
-          <p><strong>Phone</strong><br />510-706-2263</p>
-          <p><strong>Email</strong><br />orders@dacandyshop.com</p>
-          <p><strong>Address</strong><br />1120 Albany Ave<br />Hartford, CT 06112</p>
-          <h3>Business Hours</h3>
-          <p>Monday-Friday 8 AM-10 PM</p>
-          <div class="map-placeholder">1120 Albany Ave, Hartford, CT 06112</div>
+      <section class="section contact-page-grid contact-details-page">
+        <div class="glass contact-store-info">
+          <p class="eyebrow">Store information</p>
+          <h2>Plan your visit.</h2>
+          <div class="store-detail"><span>Phone</span><a href="tel:+15107062263">510-706-2263</a></div>
+          <div class="store-detail"><span>Email</span><a href="mailto:orders@dacandyshop.com">orders@dacandyshop.com</a></div>
+          <div class="store-detail"><span>Address</span><strong>1120 Albany Ave<br />Hartford, CT 06112</strong></div>
+          <div class="store-detail"><span>Hours</span><strong>Monday&ndash;Friday<br />8 AM&ndash;10 PM</strong></div>
+          <a class="btn ghost full" href="https://maps.google.com/?q=1120+Albany+Ave+Hartford+CT+06112" target="_blank" rel="noopener noreferrer">Get Directions</a>
         </div>
       </section>
     </main>
     <footer class="site-footer">
       <div class="brand"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.webp" alt="Da Candy Shop" /></div>
-      <div class="footer-links"><a href="index.html">Home</a><a href="flower.html">Flower</a><a href="#">Instagram</a></div>
-      <p>&copy; 2026 Da Candy Shop. All rights reserved.</p>
+      <div class="footer-links"><a href="index.html">Home</a><a href="flower.html">Flower</a><a href="about.html">About</a></div>
+      <p>&copy; 2026 Da Candy Shop. All rights reserved. 21+ only.</p>
     </footer>
     <script src="nav.js"></script>
     <script src="age-gate.js"></script>
-    <script>
-      async function convexMutation(path, args) {
-        const baseUrl = localStorage.getItem("DCS_CONVEX_URL") || window.DCS_CONVEX_URL || "";
-        if (!baseUrl) return null;
-        const response = await fetch(`${baseUrl.replace(/\/$/, "")}/api/mutation`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path, args, format: "json" })
-        });
-        if (!response.ok) throw new Error("Convex request failed.");
-        return await response.json();
-      }
-      contactForm.addEventListener("submit", async event => {
-        event.preventDefault();
-        const message = Object.fromEntries(new FormData(contactForm));
-        const saved = JSON.parse(localStorage.getItem("dcsMessages") || "[]");
-        saved.push({ ...message, createdAt: Date.now() });
-        localStorage.setItem("dcsMessages", JSON.stringify(saved));
-        try {
-          await convexMutation("messages:createMessage", message);
-        } catch (error) {
-          console.warn(error);
-        }
-        contactForm.reset();
-        formStatus.textContent = "Message received. We'll follow up shortly.";
-      });
-    </script>
   </body>
 </html>

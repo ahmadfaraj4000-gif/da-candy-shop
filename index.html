@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Da Candy Shop | Premium Smoke Lounge</title>
+    <meta name="description" content="Premium flower available for pickup at Da Candy Shop in Hartford, Connecticut." />
+    <title>Da Candy Shop | Premium Flower in Hartford</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="smoke-layer" aria-hidden="true"><canvas id="smokeCanvas"></canvas></div>
     <header class="site-header">
       <a class="brand" href="index.html">
         <img class="brand-logo" src="assets/logos/da-candy-shop-logo.webp" alt="Da Candy Shop" />
@@ -18,60 +18,64 @@
       <nav class="site-nav" aria-label="Primary navigation">
         <a href="index.html">Home</a>
         <a href="flower.html">Flower</a>
+        <a href="about.html">About</a>
         <a href="landing-page.html">In-Store Payment</a>
-        <a href="tel:+15107062263">Contact</a>
+        <a href="contact.html">Visit</a>
       </nav>
     </header>
 
     <main>
       <section class="hero modern-hero">
         <div class="hero-copy">
-          <p class="eyebrow">Pickup Menu</p>
-          <h1>Da Candy Shop</h1>
-          <p class="tagline">Order flower for pickup or pay at the counter.</p>
+          <p class="eyebrow">Premium flower in Hartford</p>
+          <h1>Premium flower.<br /><em>Ready for pickup.</em></h1>
+          <p class="tagline">Browse the live menu and choose your pickup time.</p>
           <div class="hero-actions">
-            <a class="btn primary" href="flower.html">Order Online</a>
-            <a class="btn secondary" href="landing-page.html">In-Store Payment</a>
-          </div>
-          <div class="hero-proof" aria-label="Store highlights">
-            <span>Flower menu</span>
-            <span>Pickup orders</span>
-            <span>In-store payment</span>
+            <a class="btn primary" href="flower.html">Shop Flower <span aria-hidden="true">&rarr;</span></a>
+            <a class="btn ghost" href="contact.html">Hours &amp; Directions</a>
           </div>
         </div>
-        <div id="homeSlideshow" class="hero-banner hero-slideshow" aria-label="Featured strain photos"></div>
+        <div class="hero-visual">
+          <div id="homeSlideshow" class="hero-banner hero-slideshow" aria-label="Featured strain photos"></div>
+        </div>
       </section>
 
       <section id="deals" class="section menu-preview-section">
         <div class="section-heading">
-          <p class="eyebrow">Flower Counter</p>
-          <h2>Flower Menu</h2>
+          <div>
+            <p class="eyebrow">Flower counter</p>
+            <h2>Current favorites.</h2>
+          </div>
+          <a class="text-link" href="flower.html">View the full menu <span aria-hidden="true">&rarr;</span></a>
         </div>
         <div id="homeFeaturedGrid" class="product-grid"></div>
       </section>
 
       <section class="section payment-section modern-payment-section">
-        <div>
-          <p class="eyebrow">Payment</p>
-          <h2>Payment Options</h2>
-          <p>Pay online or at the counter.</p>
+        <div class="payment-copy">
+          <p class="eyebrow">Simple checkout</p>
+          <h2>Pay your way.</h2>
+          <p>Choose secure online checkout, pay at pickup, or use the counter payment page while you&rsquo;re in store.</p>
+          <a class="text-link" href="landing-page.html">Open counter payment <span aria-hidden="true">&rarr;</span></a>
         </div>
-        <div class="payment-grid">
-          <div class="qr-card"><img class="payment-logo" src="assets/logos/cash-app-clean.webp" alt="Cash App" /><span>Cash App</span></div>
-          <div class="qr-card"><img class="payment-logo" src="assets/logos/stripe.webp" alt="Stripe" /><span>Stripe</span></div>
+        <div class="payment-methods" aria-label="Accepted payment methods">
+          <div class="payment-method"><img src="assets/logos/stripe.webp" alt="Stripe" /><span>Secure online checkout</span></div>
+          <div class="payment-method"><img src="assets/logos/cash-app-clean.webp" alt="Cash App" /><span>Available at the counter</span></div>
+          <div class="payment-method payment-method-text"><strong>Pay at pickup</strong><span>Reserve now, pay when you arrive</span></div>
         </div>
       </section>
 
       <section class="section contact-strip">
         <div>
-          <p class="eyebrow">Visit Us</p>
-          <h2>Contact & Hours</h2>
+          <p class="eyebrow">Visit us</p>
+          <h2>Find the shop.</h2>
+          <a class="btn ghost" href="https://maps.google.com/?q=1120+Albany+Ave+Hartford+CT+06112" target="_blank" rel="noopener noreferrer">Get Directions</a>
         </div>
         <div class="info-grid">
-          <p><strong>Phone</strong><br />510-706-2263</p>
-          <p><strong>Email</strong><br />orders@dacandyshop.com</p>
-          <p><strong>Address</strong><br />1120 Albany Ave, Hartford, CT 06112</p>
-          <p><strong>Hours</strong><br />Monday-Friday 8 AM-10 PM</p>
+          <p><span>Phone</span><a href="tel:+15107062263">510-706-2263</a></p>
+          <p><span>Email</span><a href="mailto:orders@dacandyshop.com">orders@dacandyshop.com</a></p>
+          <p><span>Address</span><strong>1120 Albany Ave<br />Hartford, CT 06112</strong></p>
+          <p><span>Hours</span><strong>Mon&ndash;Fri<br />8 AM&ndash;10 PM</strong></p>
         </div>
       </section>
     </main>
@@ -81,8 +85,8 @@
       <div class="footer-links">
         <a href="flower.html">Flower</a>
         <a href="tel:+15107062263">Contact</a>
-        <a href="#">Instagram</a>
-        <a href="#">Facebook</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Visit</a>
       </div>
       <p>&copy; 2026 Da Candy Shop. All rights reserved. 21+ only.</p>
     </footer>
@@ -93,6 +97,5 @@
     <script src="age-gate.js"></script>
     <script src="slideshow.js"></script>
     <script src="home-menu.js"></script>
-    <script src="smoke.js"></script>
   </body>
 </html>
