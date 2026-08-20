@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Flower | Da Candy Shop</title>
-    <link rel="stylesheet" href="styles.css?v=20260820-1" />
+    <link rel="stylesheet" href="styles.css?v=20260820-3" />
   </head>
   <body>
     <header class="site-header flower-header">
@@ -126,6 +126,13 @@
     <script src="age-gate.js"></script>
     <script src="flower-promo.js"></script>
     <script type="module">
+      const weightOptions = [
+        { key: "gram", label: "1 Gram", shortLabel: "1g", grams: 1 },
+        { key: "eighth", label: "1/8 oz", shortLabel: "1/8 oz", grams: 3.5 },
+        { key: "quarter", label: "1/4 oz", shortLabel: "1/4 oz", grams: 7 },
+        { key: "half", label: "1/2 oz", shortLabel: "1/2 oz", grams: 14 },
+        { key: "ounce", label: "1 oz", shortLabel: "1 oz", grams: 28 }
+      ];
       const strainImages = ["weed-1.avif","weed-2.avif","weed-3.avif","weed-4.avif","weed-5.avif","weed-6.avif","weed-7.avif","weed-8.avif","weed-9.avif"].map(name => `assets/images/${name}`);
       const fallback = [
         ["Purple Planet",20,"Hybrid","High","Fresh flower from the current shelf.",98],
@@ -139,13 +146,39 @@
         ["Papaya Runtz",15,"Hybrid","High","Fresh flower from the current shelf.",95],
         ["Strawberry Cough",15,"Sativa","High","Fresh flower from the current shelf.",94],
         ["Pink Candy",10,"Hybrid","Medium","Fresh flower from the current shelf.",93]
-      ].map((s, i) => ({ id: String(i + 1), name: s[0], price: s[1], onlinePrice: s[1], grams: 3.5, strainType: s[2], potency: s[3], description: s[4], popularity: s[5], available: true, image: strainImages[i % strainImages.length] }));
+      ].map((s, i) => ({ id: String(i + 1), name: s[0], price: s[1], onlinePrice: s[1], grams: 3.5, weightPrices: { eighth: s[1] }, onlineWeightPrices: { eighth: s[1] }, strainType: s[2], potency: s[3], description: s[4], popularity: s[5], available: true, image: strainImages[i % strainImages.length] }));
       const cart = [];
       let inventory = fallback;
       const money = value => `$${Number(value).toFixed(2)}`;
       const potencyRank = value => ({ Low: 1, Medium: 2, High: 3 })[value] || 0;
       const selectedPaymentMethod = () => flowerCheckout.paymentMethod.value;
       const itemPrice = item => selectedPaymentMethod() === "stripe" ? Number(item.onlinePrice ?? item.price) : Number(item.price);
+      const selectedWeights = new Map();
+      function legacyWeightKey(grams) {
+        const numericGrams = Number(grams ?? 3.5);
+        return weightOptions.find(option => Math.abs(option.grams - numericGrams) < .01)?.key || "eighth";
+      }
+      function weightPricesForItem(item, online = false) {
+        const stored = online ? item.onlineWeightPrices : item.weightPrices;
+        if (stored && Object.values(stored).some(price => Number(price) > 0)) return stored;
+        const key = legacyWeightKey(item.grams);
+        return { [key]: Number(online ? item.onlinePrice ?? item.price : item.price) };
+      }
+      function priceForWeight(item, weightKey, online = false) {
+        return Number(weightPricesForItem(item, online)[weightKey] || 0);
+      }
+      function availableWeights(item) {
+        return weightOptions.filter(option => priceForWeight(item, option.key) > 0);
+      }
+      function selectedWeightForItem(item) {
+        const offeredWeights = availableWeights(item);
+        const savedWeight = selectedWeights.get(item.id);
+        const selected = offeredWeights.find(option => option.key === savedWeight)
+          || offeredWeights.find(option => option.key === "eighth")
+          || offeredWeights[0];
+        if (selected) selectedWeights.set(item.id, selected.key);
+        return selected;
+      }
       const convexUrl = () => window.DCS_CONVEX_URL || localStorage.getItem("DCS_CONVEX_URL") || "";
       const stripeCheckoutUrl = () => window.DCS_STRIPE_CHECKOUT_API_URL || localStorage.getItem("DCS_STRIPE_CHECKOUT_API_URL") || "";
       const promoSpinUrl = () => window.DCS_PROMO_SPIN_API_URL || localStorage.getItem("DCS_PROMO_SPIN_API_URL") || "";
@@ -379,14 +412,11 @@
         date.setDate(date.getDate() + 1);
         return date;
       }
-      function isBusinessDay(date) {
+      function storeHours(date) {
         const day = date.getDay();
-        return day >= 1 && day <= 5;
-      }
-      function nextBusinessDay(date) {
-        const next = new Date(date);
-        while (!isBusinessDay(next)) next.setDate(next.getDate() + 1);
-        return next;
+        if (day === 6) return { openHour: 9, closeHour: 23 };
+        if (day === 0) return { openHour: 10, closeHour: 22 };
+        return { openHour: 8, closeHour: 22 };
       }
       function selectedPickupDate() {
         const [year, month, day] = pickupDateInput.value.split("-").map(Number);
@@ -394,21 +424,23 @@
       }
       function isAfterTodayCutoff() {
         const now = new Date();
-        return now.getHours() >= 22;
+        const { closeHour } = storeHours(now);
+        return now.getHours() >= closeHour;
       }
       function minimumPickupDateValue() {
-        return dateValue(nextBusinessDay(isAfterTodayCutoff() ? tomorrowDate() : new Date()));
+        return dateValue(isAfterTodayCutoff() ? tomorrowDate() : new Date());
       }
-      function currentPickupTimeValue() {
+      function currentPickupTimeValue(date = new Date()) {
         const now = new Date();
+        const { openHour, closeHour } = storeHours(date);
         let hour = now.getHours();
         let minute = Math.ceil(now.getMinutes() / 15) * 15;
         if (minute === 60) {
           hour += 1;
           minute = 0;
         }
-        if (hour < 8) return "08:00";
-        if (hour > 22 || (hour === 22 && minute > 0)) return "22:00";
+        if (hour < openHour) return `${String(openHour).padStart(2, "0")}:00`;
+        if (hour > closeHour || (hour === closeHour && minute > 0)) return `${String(closeHour).padStart(2, "0")}:00`;
         return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
       }
       function isTodaySelected() {
@@ -416,11 +448,13 @@
       }
       function populatePickupTimes() {
         const currentValue = pickupTimeInput.value;
-        const earliestToday = currentPickupTimeValue();
+        const pickupDate = selectedPickupDate();
+        const { openHour, closeHour } = storeHours(pickupDate);
+        const earliestToday = currentPickupTimeValue(pickupDate);
         const options = [];
-        for (let hour = 8; hour <= 22; hour++) {
+        for (let hour = openHour; hour <= closeHour; hour++) {
           for (let minute = 0; minute < 60; minute += 15) {
-            if (hour === 22 && minute > 0) continue;
+            if (hour === closeHour && minute > 0) continue;
             const option = formatPickupOption(hour, minute);
             if (isTodaySelected() && option.value < earliestToday) continue;
             options.push(option);
@@ -438,8 +472,7 @@
       function validatePickupDateTime() {
         refreshPickupControls();
         if (pickupDateInput.value < pickupDateInput.min) return "Choose a pickup date that has not passed.";
-        if (!isBusinessDay(selectedPickupDate())) return "Pickup is available Monday through Friday.";
-        if (isTodaySelected() && pickupTimeInput.value < currentPickupTimeValue()) return "Choose a pickup time that has not passed.";
+        if (isTodaySelected() && pickupTimeInput.value < currentPickupTimeValue(selectedPickupDate())) return "Choose a pickup time that has not passed.";
         return "";
       }
       async function convexCall(kind, path, args) {
@@ -494,6 +527,8 @@
               price: Number(item.price || 0),
               onlinePrice: Number(item.onlinePrice ?? item.price ?? 0),
               grams: Number(item.grams ?? 3.5),
+              weightPrices: weightPricesForItem(item),
+              onlineWeightPrices: weightPricesForItem(item, true),
               available: item.available ?? Number(item.quantity ?? 0) > 0,
               image: item.image || strainImages[index % strainImages.length],
               popularity: item.popularity || 0
@@ -517,17 +552,31 @@
       }
       function render() {
         const search = flowerSearch.value.toLowerCase();
-        let rows = inventory.filter(item => item.name.toLowerCase().includes(search) && (!flowerType.value || item.strainType === flowerType.value));
-        rows.sort((a,b) => flowerSort.value === "potency" ? potencyRank(b.potency) - potencyRank(a.potency) : flowerSort.value === "low" ? a.price - b.price : flowerSort.value === "high" ? b.price - a.price : (b.popularity || 0) - (a.popularity || 0));
+        let rows = inventory.filter(item => item.name.toLowerCase().includes(search) && (!flowerType.value || item.strainType === flowerType.value) && availableWeights(item).length);
+        const displayedPrice = item => {
+          const weight = selectedWeightForItem(item);
+          return weight ? priceForWeight(item, weight.key) : 0;
+        };
+        rows.sort((a,b) => flowerSort.value === "potency" ? potencyRank(b.potency) - potencyRank(a.potency) : flowerSort.value === "low" ? displayedPrice(a) - displayedPrice(b) : flowerSort.value === "high" ? displayedPrice(b) - displayedPrice(a) : (b.popularity || 0) - (a.popularity || 0));
         flowerGrid.innerHTML = rows.length
           ? rows.map(item => {
               const isAvailable = item.available ?? Number(item.quantity ?? 0) > 0;
               const stockText = isAvailable ? "Available" : "Not Available";
-              const onlineLabel = Number(item.onlinePrice ?? item.price) === Number(item.price) ? "" : `<span>Online ${money(item.onlinePrice)}</span>`;
-              return `<article class="product-card strain-card"><div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${item.image}" alt="${item.name} strain" /></div><div class="card-top"><span class="badge">${item.strainType}</span><span class="stock-pill">${stockText}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="strain-price-row"><strong>Pickup ${money(item.price)}</strong>${onlineLabel || `<span>${item.potency}</span>`}</div><div class="specs"><span>${Number(item.grams ?? 3.5)}g</span><span>${item.potency} Potency</span></div><div class="card-order-row"><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" ${isAvailable ? "" : "disabled"} /></label><button class="btn small" data-id="${item.id}" ${isAvailable ? "" : "disabled"}>${isAvailable ? "Add to Cart" : "Unavailable"}</button></div></article>`;
+              const weight = selectedWeightForItem(item);
+              const pickupPrice = priceForWeight(item, weight.key);
+              const onlinePrice = priceForWeight(item, weight.key, true) || pickupPrice;
+              const onlineLabel = onlinePrice === pickupPrice ? "" : `<span>Online ${money(onlinePrice)}</span>`;
+              const weightOptionsMarkup = availableWeights(item).map(option => `<option value="${option.key}" ${option.key === weight.key ? "selected" : ""}>${option.label} &mdash; ${money(priceForWeight(item, option.key))}</option>`).join("");
+              return `<article class="product-card strain-card"><div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${item.image}" alt="${item.name} strain" /></div><div class="card-top"><span class="badge">${item.strainType}</span><span class="stock-pill">${stockText}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="strain-price-row"><strong>Pickup ${money(pickupPrice)}</strong>${onlineLabel || `<span>${item.potency}</span>`}</div><label class="card-weight-control">Weight <select class="card-weight-select" data-weight-for="${item.id}">${weightOptionsMarkup}</select></label><div class="specs"><span>${weight.shortLabel}</span><span>${item.potency} Potency</span></div><div class="card-order-row"><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" ${isAvailable ? "" : "disabled"} /></label><button class="btn small" data-id="${item.id}" ${isAvailable ? "" : "disabled"}>${isAvailable ? "Add to Cart" : "Unavailable"}</button></div></article>`;
             }).join("")
           : "<div class=\"state-card glass\">No strains are currently available.</div>";
       }
+      flowerGrid.addEventListener("change", event => {
+        const id = event.target.dataset.weightFor;
+        if (!id) return;
+        selectedWeights.set(id, event.target.value);
+        render();
+      });
       flowerGrid.addEventListener("click", event => {
         const id = event.target.dataset.id;
         if (!id) return;
@@ -540,7 +589,10 @@
           });
         }
         const quantity = Number(document.getElementById(`qty-${id}`).value);
-        cart.push({ productId: id, inventoryId: item._id, name: item.name, price: item.price, onlinePrice: item.onlinePrice ?? item.price, grams: Number(item.grams ?? 3.5), quantity });
+        const weight = selectedWeightForItem(item);
+        const pickupPrice = priceForWeight(item, weight.key);
+        const onlinePrice = priceForWeight(item, weight.key, true) || pickupPrice;
+        cart.push({ productId: id, inventoryId: item._id, name: item.name, price: pickupPrice, onlinePrice, grams: weight.grams, weightLabel: weight.shortLabel, quantity });
         renderCart();
         event.target.textContent = "Added";
         window.setTimeout(() => {

@@ -157,9 +157,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--brand-green); bo
 .stock-pill { color: var(--accent); font-weight: 750; }
 .specs { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0 .2rem; }
 .specs span, .payment-due { width: fit-content; padding: .35rem .55rem; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: rgba(255,255,255,.025); font-size: .68rem; font-weight: 750; }
+.card-weight-control { margin: 0 .2rem; }
+.card-weight-control select { min-height: 44px; }
 .card-order-row { display: grid; grid-template-columns: 86px minmax(0,1fr); align-items: end; gap: .55rem; margin: .25rem .2rem .2rem; }
-.card-order-row input { min-height: 44px; }
-.card-order-row .btn { width: 100%; }
+.card-order-row input { height: 47px; min-height: 47px; }
+.card-order-row .btn { width: 100%; height: 47px; min-height: 47px; margin: 0; }
 .state-card { grid-column: 1/-1; padding: 2rem; color: var(--muted); }
 .checkout-section { padding-top: 3rem; }
 .checkout-grid { display: grid; grid-template-columns: minmax(0,.9fr) minmax(0,1fr) minmax(300px,1.1fr); gap: .8rem; padding: .8rem; background: var(--raised); }
