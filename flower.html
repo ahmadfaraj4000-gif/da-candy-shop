@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Flower | Da Candy Shop</title>
-    <link rel="stylesheet" href="styles.css?v=20260820-3" />
+    <link rel="stylesheet" href="styles.css?v=20260901-1" />
   </head>
   <body>
     <header class="site-header flower-header">
@@ -124,14 +124,14 @@
     </script>
     <script src="nav.js"></script>
     <script src="age-gate.js"></script>
+    <script src="promotion.js?v=20260901-2"></script>
     <script src="flower-promo.js"></script>
     <script type="module">
       const weightOptions = [
-        { key: "gram", label: "1 Gram", shortLabel: "1g", grams: 1 },
-        { key: "eighth", label: "1/8 oz", shortLabel: "1/8 oz", grams: 3.5 },
-        { key: "quarter", label: "1/4 oz", shortLabel: "1/4 oz", grams: 7 },
-        { key: "half", label: "1/2 oz", shortLabel: "1/2 oz", grams: 14 },
-        { key: "ounce", label: "1 oz", shortLabel: "1 oz", grams: 28 }
+        { key: "eighth", label: "3.5 grams", shortLabel: "3.5g", grams: 3.5 },
+        { key: "quarter", label: "7 grams", shortLabel: "7g", grams: 7 },
+        { key: "half", label: "14 grams", shortLabel: "14g", grams: 14 },
+        { key: "ounce", label: "28 grams", shortLabel: "28g", grams: 28 }
       ];
       const strainImages = ["weed-1.avif","weed-2.avif","weed-3.avif","weed-4.avif","weed-5.avif","weed-6.avif","weed-7.avif","weed-8.avif","weed-9.avif"].map(name => `assets/images/${name}`);
       const fallback = [
@@ -152,17 +152,18 @@
       const money = value => `$${Number(value).toFixed(2)}`;
       const potencyRank = value => ({ Low: 1, Medium: 2, High: 3 })[value] || 0;
       const selectedPaymentMethod = () => flowerCheckout.paymentMethod.value;
-      const itemPrice = item => selectedPaymentMethod() === "stripe" ? Number(item.onlinePrice ?? item.price) : Number(item.price);
+      const itemPrice = item => Number(item.price);
       const selectedWeights = new Map();
       function legacyWeightKey(grams) {
         const numericGrams = Number(grams ?? 3.5);
         return weightOptions.find(option => Math.abs(option.grams - numericGrams) < .01)?.key || "eighth";
       }
       function weightPricesForItem(item, online = false) {
-        const stored = online ? item.onlineWeightPrices : item.weightPrices;
+        void online;
+        const stored = item.weightPrices;
         if (stored && Object.values(stored).some(price => Number(price) > 0)) return stored;
         const key = legacyWeightKey(item.grams);
-        return { [key]: Number(online ? item.onlinePrice ?? item.price : item.price) };
+        return { [key]: Number(item.price) };
       }
       function priceForWeight(item, weightKey, online = false) {
         return Number(weightPricesForItem(item, online)[weightKey] || 0);
@@ -184,6 +185,13 @@
       const promoSpinUrl = () => window.DCS_PROMO_SPIN_API_URL || localStorage.getItem("DCS_PROMO_SPIN_API_URL") || "";
       const promoSpinStatusUrl = () => window.DCS_PROMO_SPIN_STATUS_API_URL || localStorage.getItem("DCS_PROMO_SPIN_STATUS_API_URL") || "";
       let activePromo = null;
+      let liveFlowerPromotion = window.DCS_LIVE_PROMOTION || null;
+      function livePromotionInventoryIds() {
+        if (!liveFlowerPromotion) return [];
+        return Array.isArray(liveFlowerPromotion.inventoryIds) && liveFlowerPromotion.inventoryIds.length
+          ? liveFlowerPromotion.inventoryIds
+          : [liveFlowerPromotion.inventoryId].filter(Boolean);
+      }
       const orderPopup = document.getElementById("orderPopup");
       const orderPopupEyebrow = document.getElementById("orderPopupEyebrow");
       const orderPopupTitle = document.getElementById("orderPopupTitle");
@@ -346,6 +354,24 @@
         if (activePromo.prize === "fifty_percent") return "Promo attached: 50% off with completed purchase";
         if (activePromo.prize === "hundred_percent") return "Promo attached: 100% off with completed purchase";
         return "";
+      }
+      function livePromotionDiscount() {
+        if (!liveFlowerPromotion) return 0;
+        const eligibleIds = livePromotionInventoryIds();
+        const eligibleItems = cart.filter(item => eligibleIds.includes(item.inventoryId));
+        const eligibleSubtotal = eligibleItems.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
+        if (!eligibleSubtotal) return 0;
+        const rawDiscount = liveFlowerPromotion.discountType === "percent"
+          ? eligibleSubtotal * (Number(liveFlowerPromotion.value) / 100)
+          : Number(liveFlowerPromotion.value) * eligibleItems.reduce((sum, item) => sum + item.quantity, 0);
+        return Math.min(eligibleSubtotal, Math.round(rawDiscount * 100) / 100);
+      }
+      function effectiveDiscount(subtotal) {
+        const promotionDiscount = livePromotionDiscount();
+        return promotionDiscount > 0 ? promotionDiscount : promoDiscount(subtotal);
+      }
+      function livePromotionNote() {
+        return liveFlowerPromotion ? `${liveFlowerPromotion.headline} — ${liveFlowerPromotion.flowerName}` : "";
       }
       function spinSegmentIndex(prize) {
         if (prize === "ten_percent") return 1;
@@ -525,7 +551,7 @@
               ...item,
               id: item._id,
               price: Number(item.price || 0),
-              onlinePrice: Number(item.onlinePrice ?? item.price ?? 0),
+              onlinePrice: Number(item.price || 0),
               grams: Number(item.grams ?? 3.5),
               weightPrices: weightPricesForItem(item),
               onlineWeightPrices: weightPricesForItem(item, true),
@@ -541,10 +567,15 @@
       }
       function renderCart() {
         const subtotal = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
-        const discount = promoDiscount(subtotal);
+        const campaignDiscount = livePromotionDiscount();
+        const discount = effectiveDiscount(subtotal);
         const total = Math.max(0, subtotal - discount);
         const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-        const promoLine = activePromo ? `<div class="cart-line promo-cart-line"><span>${promoNote()}</span><strong>${discount ? `-${money(discount)}` : "Added"}</strong></div>` : "";
+        const promoLine = campaignDiscount > 0
+          ? `<div class="cart-line promo-cart-line"><span>${livePromotionNote()}</span><strong>-${money(campaignDiscount)}</strong></div>`
+          : activePromo
+          ? `<div class="cart-line promo-cart-line"><span>${promoNote()}</span><strong>${discount ? `-${money(discount)}` : "Added"}</strong></div>`
+          : "";
         flowerCart.innerHTML = cart.length ? `${cart.map((item, index) => `<div class="cart-line"><span>${item.name} <small>${Number(item.grams ?? 3.5)}g x ${item.quantity}</small></span><strong>${money(itemPrice(item) * item.quantity)}</strong><button type="button" data-remove="${index}">Remove</button></div>`).join("")}${promoLine}` : "<p>Your candy bag is empty.</p>";
         flowerTotal.textContent = money(total);
         headerCartCount.textContent = count;
@@ -564,10 +595,13 @@
               const stockText = isAvailable ? "Available" : "Not Available";
               const weight = selectedWeightForItem(item);
               const pickupPrice = priceForWeight(item, weight.key);
-              const onlinePrice = priceForWeight(item, weight.key, true) || pickupPrice;
-              const onlineLabel = onlinePrice === pickupPrice ? "" : `<span>Online ${money(onlinePrice)}</span>`;
-              const weightOptionsMarkup = availableWeights(item).map(option => `<option value="${option.key}" ${option.key === weight.key ? "selected" : ""}>${option.label} &mdash; ${money(priceForWeight(item, option.key))}</option>`).join("");
-              return `<article class="product-card strain-card"><div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${item.image}" alt="${item.name} strain" /></div><div class="card-top"><span class="badge">${item.strainType}</span><span class="stock-pill">${stockText}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="strain-price-row"><strong>Pickup ${money(pickupPrice)}</strong>${onlineLabel || `<span>${item.potency}</span>`}</div><label class="card-weight-control">Weight <select class="card-weight-select" data-weight-for="${item.id}">${weightOptionsMarkup}</select></label><div class="specs"><span>${weight.shortLabel}</span><span>${item.potency} Potency</span></div><div class="card-order-row"><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" ${isAvailable ? "" : "disabled"} /></label><button class="btn small" data-id="${item.id}" ${isAvailable ? "" : "disabled"}>${isAvailable ? "Add to Cart" : "Unavailable"}</button></div></article>`;
+              const weightOptionsMarkup = weightOptions.map(option => {
+                const optionPrice = priceForWeight(item, option.key);
+                return `<option value="${option.key}" ${option.key === weight.key ? "selected" : ""} ${optionPrice > 0 ? "" : "disabled"}>${option.label} &mdash; ${optionPrice > 0 ? money(optionPrice) : "Price pending"}</option>`;
+              }).join("");
+              const promoted = livePromotionInventoryIds().includes(item._id);
+              const promoBadge = promoted ? `<span class="product-promo-badge">${liveFlowerPromotion.discountType === "percent" ? `${Number(liveFlowerPromotion.value)}% off` : `${money(liveFlowerPromotion.value)} off`}</span>` : "";
+              return `<article class="product-card strain-card ${promoted ? "promoted-flower-card" : ""}">${promoBadge}<div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${item.image}" alt="${item.name} strain" /></div><div class="card-top"><span class="badge">${item.strainType}</span><span class="stock-pill">${stockText}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="strain-price-row"><strong>${money(pickupPrice)}</strong><span>${item.potency}</span></div><label class="card-weight-control">Weight <select class="card-weight-select" data-weight-for="${item.id}">${weightOptionsMarkup}</select></label><div class="specs"><span>${weight.shortLabel}</span><span>${item.potency} Potency</span></div><div class="card-order-row"><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" ${isAvailable ? "" : "disabled"} /></label><button class="btn small" data-id="${item.id}" ${isAvailable ? "" : "disabled"}>${isAvailable ? "Add to Cart" : "Unavailable"}</button></div></article>`;
             }).join("")
           : "<div class=\"state-card glass\">No strains are currently available.</div>";
       }
@@ -591,8 +625,7 @@
         const quantity = Number(document.getElementById(`qty-${id}`).value);
         const weight = selectedWeightForItem(item);
         const pickupPrice = priceForWeight(item, weight.key);
-        const onlinePrice = priceForWeight(item, weight.key, true) || pickupPrice;
-        cart.push({ productId: id, inventoryId: item._id, name: item.name, price: pickupPrice, onlinePrice, grams: weight.grams, weightLabel: weight.shortLabel, quantity });
+        cart.push({ productId: id, inventoryId: item._id, name: item.name, price: pickupPrice, onlinePrice: pickupPrice, grams: weight.grams, weightLabel: weight.shortLabel, quantity });
         renderCart();
         event.target.textContent = "Added";
         window.setTimeout(() => {
@@ -690,6 +723,13 @@
           });
         }
         const data = Object.fromEntries(new FormData(flowerCheckout));
+        const campaignDiscount = livePromotionDiscount();
+        if (campaignDiscount > 0 && (activePromo || data.discountCode?.trim())) {
+          return showFlowerPopup({
+            title: "One Promotion Per Order",
+            message: "The live flower promotion is already applied automatically and cannot be combined with another reward or discount code."
+          });
+        }
         if (activePromo && data.discountCode?.trim()) {
           return showFlowerPopup({
             title: "One Reward Per Order",
@@ -698,7 +738,7 @@
         }
         const payOnline = data.paymentMethod === "stripe";
         const subtotal = cart.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
-        const total = Math.max(0, subtotal - promoDiscount(subtotal));
+        const total = Math.max(0, subtotal - effectiveDiscount(subtotal));
         const pricedCart = cart.map(item => ({
           productId: item.productId,
           inventoryId: item.inventoryId,
@@ -715,13 +755,13 @@
           items: pricedCart,
           total,
           paymentMethod: data.paymentMethod,
-          promoSpinId: activePromo?.spinId,
-          discountCode: activePromo ? undefined : String(data.discountCode || "").trim()
+          promoSpinId: campaignDiscount > 0 ? undefined : activePromo?.spinId,
+          discountCode: campaignDiscount > 0 || activePromo ? undefined : String(data.discountCode || "").trim()
         };
         let orderNumber = `DCS-${Number(localStorage.getItem("dcsOrderSeed") || 100000) + 1}`;
         let orderId = null;
         let confirmedTotal = total;
-        let confirmedPromo = activePromo;
+        let confirmedPromo = campaignDiscount > 0 ? liveFlowerPromotion : activePromo;
         const submitButton = flowerCheckout.querySelector("button[type='submit']");
         submitButton.disabled = true;
         submitButton.textContent = payOnline ? "Opening Stripe..." : "Placing Order...";
@@ -779,6 +819,11 @@
         submitButton.textContent = "Place Order";
       });
       [flowerSearch, flowerType, flowerSort].forEach(input => input.addEventListener("input", render));
+      window.addEventListener("dcs:promotion-loaded", event => {
+        liveFlowerPromotion = event.detail || null;
+        render();
+        renderCart();
+      });
       async function showStripeReturnConfirmation() {
         const params = new URLSearchParams(window.location.search);
         if (params.get("payment") !== "success") return;

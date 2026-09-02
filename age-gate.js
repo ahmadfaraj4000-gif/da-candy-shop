@@ -34,6 +34,7 @@
   enter.addEventListener("click", () => {
     localStorage.setItem(key, "yes");
     gate.remove();
+    window.dispatchEvent(new CustomEvent("dcs:age-verified"));
   });
   exit.addEventListener("click", () => {
     gate.querySelector(".age-gate-panel").innerHTML = `

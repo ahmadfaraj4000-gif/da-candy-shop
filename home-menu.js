@@ -38,8 +38,9 @@
       ...item,
       id: item._id || item.id || String(index + 1),
       price: Number(item.price || 0),
-      onlinePrice: Number(item.onlinePrice ?? item.price ?? 0),
+      onlinePrice: Number(item.price || 0),
       grams: Number(item.grams ?? 3.5),
+      weightPrices: item.weightPrices || { eighth: Number(item.price || 0) },
       available: item.available ?? Number(item.quantity ?? 0) > 0,
       featured: item.featured ?? false,
       image: item.image || "",
@@ -70,13 +71,14 @@
     if (!grid) return;
     grid.innerHTML = rows.length
       ? rows.map(item => {
-          const onlineLabel = Number(item.onlinePrice ?? item.price) === Number(item.price) ? "in menu" : `online ${money(item.onlinePrice)}`;
+          const configuredPrices = Object.values(item.weightPrices || {}).map(Number).filter(price => price > 0);
+          const startingPrice = configuredPrices.length ? Math.min(...configuredPrices) : item.price;
           return `<article class="product-card">
             <span class="badge">${escapeHtml(item.strainType || "Flower")}</span>
             <div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)} strain" /></div>
             <h3>${escapeHtml(item.name)}</h3>
             <p>${escapeHtml(item.description || "Fresh flower from the current shelf.")}</p>
-            <div class="price-row"><strong>Pickup ${money(item.price)}</strong><span>${escapeHtml(onlineLabel)}</span></div>
+            <div class="price-row"><strong>From ${money(startingPrice)}</strong><span>See all weights on menu</span></div>
             <a class="btn small" href="flower.html">View Menu</a>
           </article>`;
         }).join("")
