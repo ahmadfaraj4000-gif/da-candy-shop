@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Flower | Da Candy Shop</title>
-    <link rel="stylesheet" href="styles.css?v=20260901-1" />
+    <link rel="stylesheet" href="styles.css?v=20261005-bundle-1" />
   </head>
   <body>
     <header class="site-header flower-header">
@@ -125,10 +125,11 @@
     </script>
     <script src="nav.js"></script>
     <script src="age-gate.js"></script>
-    <script src="promotion.js?v=20260901-2"></script>
+    <script src="promotion.js?v=20261005-bundle-1"></script>
     <script src="flower-promo.js"></script>
     <script type="module">
       import { attachCheckoutHours } from "./checkout-hours.js";
+      import { calculatePromotionDiscount, isPromotionItemEligible, promotionLabel } from "./promotion-pricing.js";
       const checkoutHours = attachCheckoutHours(document.getElementById("flowerCheckout"));
       const weightOptions = [
         { key: "eighth", label: "3.5 grams", shortLabel: "3.5g", grams: 3.5 },
@@ -189,12 +190,6 @@
       const promoSpinStatusUrl = () => window.DCS_PROMO_SPIN_STATUS_API_URL || localStorage.getItem("DCS_PROMO_SPIN_STATUS_API_URL") || "";
       let activePromo = null;
       let liveFlowerPromotion = window.DCS_LIVE_PROMOTION || null;
-      function livePromotionInventoryIds() {
-        if (!liveFlowerPromotion) return [];
-        return Array.isArray(liveFlowerPromotion.inventoryIds) && liveFlowerPromotion.inventoryIds.length
-          ? liveFlowerPromotion.inventoryIds
-          : [liveFlowerPromotion.inventoryId].filter(Boolean);
-      }
       const orderPopup = document.getElementById("orderPopup");
       const orderPopupEyebrow = document.getElementById("orderPopupEyebrow");
       const orderPopupTitle = document.getElementById("orderPopupTitle");
@@ -359,22 +354,14 @@
         return "";
       }
       function livePromotionDiscount() {
-        if (!liveFlowerPromotion) return 0;
-        const eligibleIds = livePromotionInventoryIds();
-        const eligibleItems = cart.filter(item => eligibleIds.includes(item.inventoryId));
-        const eligibleSubtotal = eligibleItems.reduce((sum, item) => sum + itemPrice(item) * item.quantity, 0);
-        if (!eligibleSubtotal) return 0;
-        const rawDiscount = liveFlowerPromotion.discountType === "percent"
-          ? eligibleSubtotal * (Number(liveFlowerPromotion.value) / 100)
-          : Number(liveFlowerPromotion.value) * eligibleItems.reduce((sum, item) => sum + item.quantity, 0);
-        return Math.min(eligibleSubtotal, Math.round(rawDiscount * 100) / 100);
+        return calculatePromotionDiscount(liveFlowerPromotion, cart.map(item => ({ ...item, price: itemPrice(item) })));
       }
       function effectiveDiscount(subtotal) {
         const promotionDiscount = livePromotionDiscount();
         return promotionDiscount > 0 ? promotionDiscount : promoDiscount(subtotal);
       }
       function livePromotionNote() {
-        return liveFlowerPromotion ? `${liveFlowerPromotion.headline} — ${liveFlowerPromotion.flowerName}` : "";
+        return liveFlowerPromotion ? `${liveFlowerPromotion.headline} — ${promotionLabel(liveFlowerPromotion)}` : "";
       }
       function spinSegmentIndex(prize) {
         if (prize === "ten_percent") return 1;
@@ -601,8 +588,8 @@
                 const optionPrice = priceForWeight(item, option.key);
                 return `<option value="${option.key}" ${option.key === weight.key ? "selected" : ""} ${optionPrice > 0 ? "" : "disabled"}>${option.label} &mdash; ${optionPrice > 0 ? money(optionPrice) : "Price pending"}</option>`;
               }).join("");
-              const promoted = livePromotionInventoryIds().includes(item._id);
-              const promoBadge = promoted ? `<span class="product-promo-badge">${liveFlowerPromotion.discountType === "percent" ? `${Number(liveFlowerPromotion.value)}% off` : `${money(liveFlowerPromotion.value)} off`}</span>` : "";
+              const promoted = liveFlowerPromotion && isPromotionItemEligible(liveFlowerPromotion, { inventoryId: item._id, price: pickupPrice, quantity: 1 });
+              const promoBadge = promoted ? `<span class="product-promo-badge">${promotionLabel(liveFlowerPromotion)}</span>` : "";
               return `<article class="product-card strain-card ${promoted ? "promoted-flower-card" : ""}">${promoBadge}<div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${item.image}" alt="${item.name} strain" /></div><div class="card-top"><span class="badge">${item.strainType}</span><span class="stock-pill">${stockText}</span></div><h3>${item.name}</h3><p>${item.description}</p><div class="strain-price-row"><strong>${money(pickupPrice)}</strong><span>${item.potency}</span></div><label class="card-weight-control">Weight <select class="card-weight-select" data-weight-for="${item.id}">${weightOptionsMarkup}</select></label><div class="specs"><span>${weight.shortLabel}</span><span>${item.potency} Potency</span></div><div class="card-order-row"><label>Qty <input id="qty-${item.id}" type="number" min="1" value="1" ${isAvailable ? "" : "disabled"} /></label><button class="btn small" data-id="${item.id}" ${isAvailable ? "" : "disabled"}>${isAvailable ? "Add to Cart" : "Unavailable"}</button></div></article>`;
             }).join("")
           : "<div class=\"state-card glass\">No strains are currently available.</div>";

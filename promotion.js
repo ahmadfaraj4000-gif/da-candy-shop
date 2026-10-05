@@ -1,4 +1,5 @@
-(function () {
+(async function () {
+  const { promotionLabel, promotionTerms } = await import("./promotion-pricing.js");
   const convexBase = window.DCS_CONVEX_URL || "https://opulent-panda-156.convex.cloud";
   let promotion = null;
 
@@ -12,9 +13,7 @@
   }
 
   function discountLabel(item) {
-    return item.discountType === "percent"
-      ? `${Number(item.value)}% off`
-      : `$${Number(item.value).toFixed(2)} off each`;
+    return promotionLabel(item);
   }
 
   async function convexQuery(path, args = {}) {
@@ -30,7 +29,11 @@
   }
 
   function focusPromotedFlower() {
-    if (!promotion || !document.getElementById("flowerSearch")) return;
+    if (!promotion) return;
+    if (!document.getElementById("flowerSearch")) {
+      window.location.href = `flower.html?promotion=${encodeURIComponent(promotion._id)}#flowerGrid`;
+      return;
+    }
     const search = document.getElementById("flowerSearch");
     search.value = "";
     search.dispatchEvent(new Event("input", { bubbles: true }));
@@ -38,18 +41,19 @@
   }
 
   function showBanner() {
-    if (!promotion || !document.querySelector(".flower-menu-shell") || document.getElementById("livePromotionBanner")) return;
+    if (!promotion || document.getElementById("livePromotionBanner")) return;
     const banner = document.createElement("aside");
     banner.id = "livePromotionBanner";
     banner.className = "live-promotion-banner";
-    banner.setAttribute("aria-label", "Current flower promotion");
+    banner.setAttribute("aria-label", "Current promotion");
     banner.innerHTML = `
       <div>
         <span>Live promotion</span>
         <strong>${escapeHtml(promotion.headline)}</strong>
         <small>${escapeHtml(promotion.flowerName)} · ${escapeHtml(discountLabel(promotion))}</small>
+        <small>${escapeHtml(promotionTerms(promotion))}</small>
       </div>
-      <button class="btn small" type="button">Shop this flower</button>
+      <button class="btn small" type="button">Shop this deal</button>
     `;
     banner.querySelector("button").addEventListener("click", focusPromotedFlower);
     document.querySelector(".site-header")?.insertAdjacentElement("afterend", banner);
@@ -61,7 +65,7 @@
 
   function showPopupAfterAgeGate() {
     if (!promotion || localStorage.getItem("dcs-age-verified") !== "yes") return;
-    const seenKey = `dcs-promotion-seen-${promotion._id}`;
+    const seenKey = `dcs-promotion-seen-${promotion._id}-${promotion.updatedAt}`;
     if (localStorage.getItem(seenKey) === "yes" || document.getElementById("livePromotionPopup")) return;
     localStorage.setItem(seenKey, "yes");
 
@@ -80,6 +84,7 @@
         <div class="promotion-popup-offer">
           <strong>${escapeHtml(discountLabel(promotion))}</strong>
           <span>${escapeHtml(promotion.flowerName)}</span>
+          <small>${escapeHtml(promotionTerms(promotion))}</small>
         </div>
         <div class="promotion-popup-actions">
           <a class="btn primary" href="flower.html?promotion=${encodeURIComponent(promotion._id)}#flowerGrid">Shop promotion</a>
@@ -98,7 +103,7 @@
 
   async function loadPromotion() {
     try {
-      promotion = await convexQuery("promotions:getLivePromotionForMenu");
+      promotion = await convexQuery("promotions:getLivePromotionForMenu", { supportsBundles: true });
       window.DCS_LIVE_PROMOTION = promotion;
       window.dispatchEvent(new CustomEvent("dcs:promotion-loaded", { detail: promotion }));
       if (!promotion) return;
