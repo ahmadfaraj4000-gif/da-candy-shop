@@ -55,7 +55,8 @@
             <h3>Order Details</h3>
             <div id="cartItems"></div>
             <div class="total-row"><span>Total Amount</span><strong id="cartTotal">$0</strong></div>
-            <button class="btn primary full" type="submit">Place Order</button>
+            <p data-ordering-hours role="status" aria-live="polite" hidden></p>
+            <button class="btn primary full" type="submit" disabled>Place Order</button>
           </div>
         </form>
         <div id="confirmation" class="confirmation glass hidden"></div>
@@ -72,6 +73,8 @@
     <script src="age-gate.js"></script>
 
     <script type="module">
+      import { attachCheckoutHours } from "./checkout-hours.js";
+      const checkoutHours = attachCheckoutHours(document.getElementById("checkoutForm"));
       const eighthPrice = 10;
       const strainImages = ["weed-1.avif","weed-2.avif","weed-3.avif","weed-4.avif","weed-5.avif","weed-6.avif","weed-7.avif","weed-8.avif","weed-9.avif"].map(name => `assets/images/${name}`);
       const strains = [
@@ -120,14 +123,14 @@
       cartItems.addEventListener("click", e => { if (e.target.dataset.remove) { cart.splice(Number(e.target.dataset.remove), 1); saveCart(); renderCart(); } });
       async function convexMutation(path, args) {
         const baseUrl = localStorage.getItem("DCS_CONVEX_URL") || window.DCS_CONVEX_URL || "";
-        if (!baseUrl) return null;
+        if (!baseUrl) throw new Error("Online ordering is unavailable. Please try again later.");
         const response = await fetch(`${baseUrl.replace(/\/$/, "")}/api/mutation`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ path, args, format: "json" })
         });
-        if (!response.ok) throw new Error("Convex request failed.");
         const payload = await response.json();
+        if (!response.ok || payload.status === "error") throw new Error(typeof payload.errorData === "string" ? payload.errorData : payload.errorMessage || "The order could not be saved. Please try again.");
         return payload.value;
       }
       const pickupDateInput = checkoutForm.elements.pickupDate;
@@ -135,6 +138,7 @@
       pickupDateInput.min = todayValue;
       checkoutForm.addEventListener("submit", async e => {
         e.preventDefault();
+        if (!checkoutHours.canSubmit()) return;
         if (!cart.length) return alert("Add at least one strain before placing an order.");
         const data = Object.fromEntries(new FormData(checkoutForm));
         const pickupDay = new Date(`${data.pickupDate}T12:00:00`).getDay();
@@ -144,14 +148,18 @@
         const closeMinutes = pickupDay === 6 ? 23 * 60 : 22 * 60;
         if (pickupMinutes < openMinutes || pickupMinutes > closeMinutes) return alert("Choose a pickup time within store hours.");
         const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        let orderNumber = `DCS-${Number(localStorage.getItem("dcsOrderSeed") || 100000) + 1}`;
+        let orderNumber;
         const orderInput = { customerName: `${data.firstName} ${data.lastName}`, phone: data.phone, pickupDate: data.pickupDate, pickupTime: data.pickupTime, items: [...cart], total };
+        checkoutHours.setSubmitting(true);
         try {
           const saved = await convexMutation("orders:createOrder", orderInput);
-          if (saved?.orderNumber) orderNumber = saved.orderNumber;
+          if (!saved?.orderNumber) throw new Error("The server did not confirm your order. Please try again.");
+          orderNumber = saved.orderNumber;
         } catch (error) {
           console.warn(error);
           return alert(error.message || "The order could not be saved. Please try again.");
+        } finally {
+          checkoutHours.setSubmitting(false);
         }
         localStorage.setItem("dcsOrderSeed", orderNumber.replace("DCS-", ""));
         const order = { orderNumber, ...orderInput, status: "Pending", createdAt: Date.now() };

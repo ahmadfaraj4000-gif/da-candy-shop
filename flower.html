@@ -95,7 +95,8 @@
             <h3>Order Details</h3>
             <div id="flowerCart"></div>
             <div class="total-row"><span>Total</span><strong id="flowerTotal">$0.00</strong></div>
-            <button class="btn primary full" type="submit">Place Order</button>
+            <p data-ordering-hours role="status" aria-live="polite" hidden></p>
+            <button class="btn primary full" type="submit" disabled>Place Order</button>
           </div>
         </form>
         <div id="flowerConfirmation" class="confirmation glass hidden"></div>
@@ -127,6 +128,8 @@
     <script src="promotion.js?v=20260901-2"></script>
     <script src="flower-promo.js"></script>
     <script type="module">
+      import { attachCheckoutHours } from "./checkout-hours.js";
+      const checkoutHours = attachCheckoutHours(document.getElementById("flowerCheckout"));
       const weightOptions = [
         { key: "eighth", label: "3.5 grams", shortLabel: "3.5g", grams: 3.5 },
         { key: "quarter", label: "7 grams", shortLabel: "7g", grams: 7 },
@@ -509,9 +512,8 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ path, args, format: "json" })
         });
-        if (!response.ok) throw new Error("Convex request failed");
         const payload = await response.json();
-        if (payload.status === "error") throw new Error(payload.errorMessage || "Convex request failed");
+        if (!response.ok || payload.status === "error") throw new Error(typeof payload.errorData === "string" ? payload.errorData : payload.errorMessage || "Convex request failed");
         return payload.value;
       }
       async function createStripeCheckoutSession(orderId) {
@@ -709,6 +711,7 @@
       pickupDateInput.addEventListener("change", refreshPickupControls);
       flowerCheckout.addEventListener("submit", async event => {
         event.preventDefault();
+        if (!checkoutHours.canSubmit()) return;
         if (!cart.length) {
           return showFlowerPopup({
             title: "Add Flower First",
@@ -762,9 +765,7 @@
         let orderId = null;
         let confirmedTotal = total;
         let confirmedPromo = campaignDiscount > 0 ? liveFlowerPromotion : activePromo;
-        const submitButton = flowerCheckout.querySelector("button[type='submit']");
-        submitButton.disabled = true;
-        submitButton.textContent = payOnline ? "Opening Stripe..." : "Placing Order...";
+        checkoutHours.setSubmitting(true, payOnline ? "Opening Stripe..." : "Placing Order...");
         try {
           const saved = await convexCall("mutation", "orders:createOrder", orderInput);
           orderId = savedOrderId(saved);
@@ -775,8 +776,7 @@
           if (payOnline && !orderId) throw new Error("The order was saved, but Convex did not return its checkout ID.");
         } catch (error) {
           console.warn(error);
-          submitButton.disabled = false;
-          submitButton.textContent = "Place Order";
+          checkoutHours.setSubmitting(false);
           return showFlowerPopup({
             eyebrow: "Order Not Saved",
             title: "Try Again",
@@ -791,8 +791,7 @@
             return;
           } catch (error) {
             console.warn(error);
-            submitButton.disabled = false;
-            submitButton.textContent = "Place Order";
+            checkoutHours.setSubmitting(false);
             return showFlowerPopup({
               eyebrow: "Checkout Error",
               title: "Stripe Could Not Start",
@@ -815,8 +814,7 @@
         flowerCheckout.reset();
         refreshPickupControls();
         paymentNote.textContent = "Payment Due At Pickup";
-        submitButton.disabled = false;
-        submitButton.textContent = "Place Order";
+        checkoutHours.setSubmitting(false);
       });
       [flowerSearch, flowerType, flowerSort].forEach(input => input.addEventListener("input", render));
       window.addEventListener("dcs:promotion-loaded", event => {
