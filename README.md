@@ -2,6 +2,8 @@
 
 ## Admin Portal Deploy Reminder
 
+The production admin is **https://admin.dacandyshopllc.com/**, deployed from the separate GitHub repository **ahmadfaraj4000-gif/da-candy-shop-ADMIN**. Its `main` branch runs `.github/workflows/deploy.yml`, builds the app at the repository root, and publishes `dist`. Updating `admin/dist` in the main website repository alone does not update this subdomain.
+
 Before committing or uploading admin portal changes to GitHub, rebuild the admin app and include the latest `admin/dist` files.
 
 ```bash
@@ -10,6 +12,8 @@ npm run build
 ```
 
 Then upload/commit the updated source files and the rebuilt `admin/dist` folder together so the live GitHub Pages admin portal matches the latest UI changes.
+
+For the standalone admin repository, map local `admin/src/...` to `src/...` and `admin/dist/...` to `dist/...`. Copy the shared root `promotion-pricing.js` into that repository's root, and change the two promotion imports from `../../../promotion-pricing.js` to `../../promotion-pricing.js` because the standalone repository has one fewer directory level. Preserve its workflow, environment configuration, and custom-domain files. Verify the deployed HTML and referenced JavaScript at **admin.dacandyshopllc.com**, not only the main website's `/admin/dist/` copy.
 
 ## Admin/API Compatibility Rule
 
