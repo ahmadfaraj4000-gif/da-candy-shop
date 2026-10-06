@@ -1,5 +1,9 @@
 # Da Candy Shop Handoff Notes
 
+## Online Ordering Hours
+
+New online orders are accepted Monday–Thursday 8 a.m.–9 p.m., Friday–Saturday 8 a.m.–10 p.m., and Sunday 10 a.m.–9:30 p.m., in `America/New_York` (including daylight saving time). Opening is inclusive; closing is exclusive. Both order endpoints enforce this before any writes, for either payment method. Checkout buttons update at each boundary and when a tab resumes; closed messages show the next opening time. Pickup scheduling remains independent. Deploy the Convex enforcement before the storefront files.
+
 ## Admin Portal Deploy Reminder
 
 The production admin is **https://admin.dacandyshopllc.com/**, deployed from the separate GitHub repository **ahmadfaraj4000-gif/da-candy-shop-ADMIN**. Its `main` branch runs `.github/workflows/deploy.yml`, builds the app at the repository root, and publishes `dist`. Updating `admin/dist` in the main website repository alone does not update this subdomain.

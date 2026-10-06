@@ -1,4 +1,4 @@
-import { isOrderingOpen, ORDERING_CLOSED_MESSAGE } from "./ordering-hours.js";
+import { getOrderingStatus } from "./ordering-hours.js?v=weekly-hours-20261005";
 
 // The server independently enforces this rule using its own clock.
 export function attachCheckoutHours(form) {
@@ -9,9 +9,9 @@ export function attachCheckoutHours(form) {
 
   function refresh() {
     window.clearTimeout(timer);
-    const open = isOrderingOpen();
+    const { open, closedMessage } = getOrderingStatus();
     notice.hidden = open;
-    notice.textContent = open ? "" : ORDERING_CLOSED_MESSAGE;
+    notice.textContent = closedMessage;
     button.disabled = submitting || !open;
     if (!submitting) button.textContent = "Place Order";
     // Align to the next minute, including the exact opening/closing minute.
