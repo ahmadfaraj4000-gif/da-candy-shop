@@ -50,8 +50,7 @@
       <div>
         <span>Live promotion</span>
         <strong>${escapeHtml(promotion.headline)}</strong>
-        <small>${escapeHtml(promotion.flowerName)} · ${escapeHtml(discountLabel(promotion))}</small>
-        <small>${escapeHtml(promotionTerms(promotion))}</small>
+        <small>${escapeHtml(discountLabel(promotion))} · ${escapeHtml(promotionTerms(promotion))}</small>
       </div>
       <button class="btn small" type="button">Shop this deal</button>
     `;
@@ -83,7 +82,6 @@
         <p>${escapeHtml(promotion.description)}</p>
         <div class="promotion-popup-offer">
           <strong>${escapeHtml(discountLabel(promotion))}</strong>
-          <span>${escapeHtml(promotion.flowerName)}</span>
           <small>${escapeHtml(promotionTerms(promotion))}</small>
         </div>
         <div class="promotion-popup-actions">
