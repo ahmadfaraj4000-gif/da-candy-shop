@@ -81,8 +81,8 @@
           </div>
           <div class="checkout-panel pickup-panel">
             <h3>Pickup Time</h3>
-            <label>Pickup Date <input name="pickupDate" type="date" required /></label>
-            <label>Pickup Time <select name="pickupTime" id="pickupTime" required></select></label>
+            <label>Pickup Date (Eastern) <input name="pickupDate" type="date" required /></label>
+            <label>Pickup Time (Eastern) <select name="pickupTime" id="pickupTime" required></select></label>
             <fieldset class="payment-choice">
               <legend>Payment</legend>
               <label><input type="radio" name="paymentMethod" value="pay_at_store" checked /> Pay at the store</label>
@@ -128,7 +128,7 @@
     <script src="promotion.js?v=20261005-bundle-1"></script>
     <script src="flower-promo.js"></script>
     <script type="module">
-      import { attachCheckoutHours } from "./checkout-hours.js?v=weekly-hours-20261005";
+      import { attachCheckoutHours } from "./checkout-hours.js?v=daily-hours-20261019";
       import { calculatePromotionDiscount, isPromotionItemEligible, promotionLabel } from "./promotion-pricing.js";
       const checkoutHours = attachCheckoutHours(document.getElementById("flowerCheckout"));
       const weightOptions = [
@@ -200,8 +200,6 @@
       const promoWheel = document.getElementById("promoWheel");
       const promoSpinButton = document.getElementById("promoSpinButton");
       const promoSpinMessage = document.getElementById("promoSpinMessage");
-      const pickupDateInput = flowerCheckout.elements.pickupDate;
-      const pickupTimeInput = flowerCheckout.elements.pickupTime;
       const closeOrderPopup = () => orderPopup.classList.add("hidden");
       function showOrderPopup({ eyebrow, title, orderNumber, message }) {
         orderPopupEyebrow.textContent = eyebrow;
@@ -411,86 +409,6 @@
         await animateRotation(startRotation, fastRotation, 3000);
         await animateRotation(fastRotation, finalRotation, 2000, easeOutCubic);
       }
-      function formatPickupOption(hour, minute) {
-        const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-        const period = hour >= 12 ? "PM" : "AM";
-        const displayHour = hour % 12 || 12;
-        return { value, label: `${displayHour}:${String(minute).padStart(2, "0")} ${period}` };
-      }
-      function dateValue(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-      }
-      function tomorrowDate() {
-        const date = new Date();
-        date.setDate(date.getDate() + 1);
-        return date;
-      }
-      function storeHours(date) {
-        const day = date.getDay();
-        if (day === 6) return { openHour: 9, closeHour: 23 };
-        if (day === 0) return { openHour: 10, closeHour: 22 };
-        return { openHour: 8, closeHour: 22 };
-      }
-      function selectedPickupDate() {
-        const [year, month, day] = pickupDateInput.value.split("-").map(Number);
-        return new Date(year, month - 1, day);
-      }
-      function isAfterTodayCutoff() {
-        const now = new Date();
-        const { closeHour } = storeHours(now);
-        return now.getHours() >= closeHour;
-      }
-      function minimumPickupDateValue() {
-        return dateValue(isAfterTodayCutoff() ? tomorrowDate() : new Date());
-      }
-      function currentPickupTimeValue(date = new Date()) {
-        const now = new Date();
-        const { openHour, closeHour } = storeHours(date);
-        let hour = now.getHours();
-        let minute = Math.ceil(now.getMinutes() / 15) * 15;
-        if (minute === 60) {
-          hour += 1;
-          minute = 0;
-        }
-        if (hour < openHour) return `${String(openHour).padStart(2, "0")}:00`;
-        if (hour > closeHour || (hour === closeHour && minute > 0)) return `${String(closeHour).padStart(2, "0")}:00`;
-        return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-      }
-      function isTodaySelected() {
-        return pickupDateInput.value === dateValue(new Date());
-      }
-      function populatePickupTimes() {
-        const currentValue = pickupTimeInput.value;
-        const pickupDate = selectedPickupDate();
-        const { openHour, closeHour } = storeHours(pickupDate);
-        const earliestToday = currentPickupTimeValue(pickupDate);
-        const options = [];
-        for (let hour = openHour; hour <= closeHour; hour++) {
-          for (let minute = 0; minute < 60; minute += 15) {
-            if (hour === closeHour && minute > 0) continue;
-            const option = formatPickupOption(hour, minute);
-            if (isTodaySelected() && option.value < earliestToday) continue;
-            options.push(option);
-          }
-        }
-        pickupTimeInput.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join("");
-        pickupTimeInput.value = options.some(option => option.value === currentValue) ? currentValue : options[0]?.value || "";
-      }
-      function refreshPickupControls() {
-        const minimumDate = minimumPickupDateValue();
-        pickupDateInput.min = minimumDate;
-        if (!pickupDateInput.value || pickupDateInput.value < minimumDate) pickupDateInput.value = minimumDate;
-        populatePickupTimes();
-      }
-      function validatePickupDateTime() {
-        refreshPickupControls();
-        if (pickupDateInput.value < pickupDateInput.min) return "Choose a pickup date that has not passed.";
-        if (isTodaySelected() && pickupTimeInput.value < currentPickupTimeValue(selectedPickupDate())) return "Choose a pickup time that has not passed.";
-        return "";
-      }
       async function convexCall(kind, path, args) {
         const base = convexUrl();
         if (!base) throw new Error("Convex URL is not configured.");
@@ -695,7 +613,6 @@
       flowerCheckout.elements.phone.addEventListener("change", () => {
         if (normalizedPhoneKey()) checkPromoSpinStatus();
       });
-      pickupDateInput.addEventListener("change", refreshPickupControls);
       flowerCheckout.addEventListener("submit", async event => {
         event.preventDefault();
         if (!checkoutHours.canSubmit()) return;
@@ -703,13 +620,6 @@
           return showFlowerPopup({
             title: "Add Flower First",
             message: "Add at least one strain before placing an order."
-          });
-        }
-        const pickupError = validatePickupDateTime();
-        if (pickupError) {
-          return showFlowerPopup({
-            title: "Choose A Valid Pickup Time",
-            message: pickupError
           });
         }
         const data = Object.fromEntries(new FormData(flowerCheckout));
@@ -799,7 +709,7 @@
         cart.length = 0;
         renderCart();
         flowerCheckout.reset();
-        refreshPickupControls();
+        checkoutHours.refresh();
         paymentNote.textContent = "Payment Due At Pickup";
         checkoutHours.setSubmitting(false);
       });
@@ -851,10 +761,9 @@
         lockPromoSpin();
       }
       checkPromoSpinStatus();
-      refreshPickupControls();
+      checkoutHours.refresh();
       renderCart();
       loadInventory();
-      window.setInterval(refreshPickupControls, 60000);
       window.setInterval(loadInventory, 60000);
     </script>
   </body>

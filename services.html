@@ -47,8 +47,8 @@
           </div>
           <div>
             <h3>Pickup Scheduling</h3>
-            <label>Pickup Date <input name="pickupDate" type="date" required /></label>
-            <label>Pickup Time <input name="pickupTime" type="time" min="08:00" max="23:00" step="900" required /></label>
+            <label>Pickup Date (Eastern) <input name="pickupDate" type="date" required /></label>
+            <label>Pickup Time (Eastern) <select name="pickupTime" required></select></label>
             <p class="payment-due">Payment Due At Pickup</p>
           </div>
           <div class="order-summary">
@@ -73,7 +73,7 @@
     <script src="age-gate.js"></script>
 
     <script type="module">
-      import { attachCheckoutHours } from "./checkout-hours.js?v=weekly-hours-20261005";
+      import { attachCheckoutHours } from "./checkout-hours.js?v=daily-hours-20261019";
       const checkoutHours = attachCheckoutHours(document.getElementById("checkoutForm"));
       const eighthPrice = 10;
       const strainImages = ["weed-1.avif","weed-2.avif","weed-3.avif","weed-4.avif","weed-5.avif","weed-6.avif","weed-7.avif","weed-8.avif","weed-9.avif"].map(name => `assets/images/${name}`);
@@ -133,20 +133,11 @@
         if (!response.ok || payload.status === "error") throw new Error(typeof payload.errorData === "string" ? payload.errorData : payload.errorMessage || "The order could not be saved. Please try again.");
         return payload.value;
       }
-      const pickupDateInput = checkoutForm.elements.pickupDate;
-      const todayValue = new Date().toLocaleDateString("en-CA");
-      pickupDateInput.min = todayValue;
       checkoutForm.addEventListener("submit", async e => {
         e.preventDefault();
         if (!checkoutHours.canSubmit()) return;
         if (!cart.length) return alert("Add at least one strain before placing an order.");
         const data = Object.fromEntries(new FormData(checkoutForm));
-        const pickupDay = new Date(`${data.pickupDate}T12:00:00`).getDay();
-        const [pickupHour, pickupMinute] = data.pickupTime.split(":").map(Number);
-        const pickupMinutes = pickupHour * 60 + pickupMinute;
-        const openMinutes = pickupDay === 6 ? 9 * 60 : pickupDay === 0 ? 10 * 60 : 8 * 60;
-        const closeMinutes = pickupDay === 6 ? 23 * 60 : 22 * 60;
-        if (pickupMinutes < openMinutes || pickupMinutes > closeMinutes) return alert("Choose a pickup time within store hours.");
         const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
         let orderNumber;
         const orderInput = { customerName: `${data.firstName} ${data.lastName}`, phone: data.phone, pickupDate: data.pickupDate, pickupTime: data.pickupTime, items: [...cart], total };
@@ -164,7 +155,7 @@
         localStorage.setItem("dcsOrderSeed", orderNumber.replace("DCS-", ""));
         const order = { orderNumber, ...orderInput, status: "Pending", createdAt: Date.now() };
         localStorage.setItem("dcsLatestOrder", JSON.stringify(order));
-        cart.length = 0; saveCart(); renderCart(); checkoutForm.reset();
+        cart.length = 0; saveCart(); renderCart(); checkoutForm.reset(); checkoutHours.refresh();
         confirmation.classList.remove("hidden");
         confirmation.innerHTML = `<h2>Sweet, You're Set</h2><p>Your pickup order is confirmed.</p><h3>${order.orderNumber}</h3><p>Pickup Time: ${order.pickupDate} at ${order.pickupTime}</p><div>${order.items.map(i => `<p>${i.name} x ${i.quantity} - ${money(i.price * i.quantity)}</p>`).join("")}</div><strong>Total: ${money(total)}</strong>`;
       });

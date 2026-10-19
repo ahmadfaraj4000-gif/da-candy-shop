@@ -2,7 +2,7 @@
 
 ## Online Ordering Hours
 
-New online orders are accepted Monday–Thursday 8 a.m.–9 p.m., Friday–Saturday 8 a.m.–10 p.m., and Sunday 10 a.m.–9:30 p.m., in `America/New_York` (including daylight saving time). Opening is inclusive; closing is exclusive. Both order endpoints enforce this before any writes, for either payment method. Checkout buttons update at each boundary and when a tab resumes; closed messages show the next opening time. Pickup scheduling remains independent. Deploy the Convex enforcement before the storefront files.
+Pickup slots are available every day from 8 a.m. to 8:45 p.m. in 15-minute intervals, in `America/New_York` (including daylight saving time). The 9 p.m. closing boundary is exclusive. Customers may submit scheduled orders overnight: after closing, the earliest pickup is 8 a.m. the next day; before opening, it is 8 a.m. that morning. Both payment methods and both order endpoints reject past dates/times and slots outside these hours before database writes. Stripe session creation revalidates the pickup. Both storefronts use the same scheduling rules and refresh when a tab resumes and at each minute boundary. When today's last slot has passed, the picker rolls forward to tomorrow. Deploy the Convex enforcement before the storefront files.
 
 ## Admin Portal Deploy Reminder
 
