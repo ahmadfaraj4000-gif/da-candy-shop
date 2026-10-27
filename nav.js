@@ -50,4 +50,35 @@
   }
   document.body.classList.add("has-floating-action");
   document.body.appendChild(floatingAction);
+
+  const mobile = window.matchMedia("(max-width: 920px)");
+  let scrollAnchor = Math.max(0, window.scrollY);
+  let framePending = false;
+
+  function updateBarSize() {
+    framePending = false;
+    // Clamp elastic scrolling so a bounce at either edge cannot flip the bar.
+    const limit = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const position = Math.min(limit, Math.max(0, window.scrollY));
+    if (!mobile.matches || position < 32) {
+      floatingAction.classList.remove("is-compact");
+      scrollAnchor = position;
+      return;
+    }
+    const distance = position - scrollAnchor;
+    if (Math.abs(distance) < 12) return;
+    floatingAction.classList.toggle("is-compact", distance > 0);
+    scrollAnchor = position;
+  }
+
+  window.addEventListener("scroll", () => {
+    if (framePending) return;
+    framePending = true;
+    window.requestAnimationFrame(updateBarSize);
+  }, { passive: true });
+  mobile.addEventListener("change", updateBarSize);
+  window.addEventListener("pageshow", () => {
+    scrollAnchor = Math.max(0, window.scrollY);
+    floatingAction.classList.toggle("is-compact", mobile.matches && scrollAnchor > 64);
+  });
 })();
