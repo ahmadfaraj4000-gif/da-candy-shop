@@ -26,7 +26,7 @@ Admin backend changes must remain compatible with the currently published bundle
 ## Mix-and-Match Promotions
 
 In **Promotions → Add Promotion**, choose **Mix & Match / Quantity Bundle**.
-For two $20 items for $30, set **Items Per Bundle** to `2`, **Total Bundle Price** to `30`, and **Eligible Item Price** to `20`. Select the eligible products and enter the public headline and description.
+For two $20 items for $30, set **Items Per Bundle** to `2`, **Total Bundle Price** to `30`, and **Eligible Item Price** to `20`. Select the eligible products. The public headline and description are generated automatically from the offer settings; the admin form has no editable public-copy fields. The banner shows a single line, such as **Mix 2 for $30 · Select items**, with the exact qualifying price shown in the pop-up when applicable.
 
 Leave **Publish this promotion live** unchecked to save a draft, including a draft with no products selected yet. Publishing shows the banner, visitor pop-up, product badges, and automatic checkout discount. Only one promotion can be live at a time.
 

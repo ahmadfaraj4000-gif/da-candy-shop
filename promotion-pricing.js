@@ -11,6 +11,19 @@ export function promotionLabel(promotion) {
   return `${money(promotion.value)} off each`;
 }
 
+/** Public display copy is generated from the offer, never entered separately.
+ * @param {Promotion} promotion
+ */
+export function promotionHeadline(promotion) {
+  if (promotion.discountType === "bundle") return `Mix ${promotion.bundleQuantity} for ${money(promotion.value)}`;
+  return promotionLabel(promotion);
+}
+
+/** @param {Promotion} promotion */
+export function promotionBannerText(promotion) {
+  return `${promotionHeadline(promotion)} · Select items`;
+}
+
 /** @param {Promotion} promotion */
 export function promotionTerms(promotion) {
   if (promotion.discountType !== "bundle" || promotion.qualifyingPrice === undefined) return "Selected items";

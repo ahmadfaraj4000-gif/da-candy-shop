@@ -15,7 +15,7 @@ import { optimizeInventoryImage } from "../lib/imageOptimizer.js";
 import { useDebounce } from "../hooks/useDebounce.js";
 import PromotionForm from "../components/PromotionForm.jsx";
 import DeletePromotionDialog from "../components/DeletePromotionDialog.jsx";
-import { promotionLabel } from "../../../promotion-pricing.js";
+import { promotionLabel, promotionHeadline, promotionTerms } from "../../../promotion-pricing.js";
 
 const inventoryWeightOptions = [
   { key: "eighth", label: "3.5 grams", grams: 3.5 },
@@ -67,7 +67,7 @@ const convexApi = {
 };
 
 const blankDiscountCode = { code: "", type: "percent", value: 10, active: true, maxUses: undefined, expiresAt: "", note: "", minimumPurchase: undefined, maxDiscount: undefined };
-const blankPromotion = { name: "", headline: "", description: "", inventoryIds: [], discountType: "percent", value: 10, active: true, startsAt: undefined, endsAt: undefined };
+const blankPromotion = { name: "", inventoryIds: [], discountType: "percent", value: 10, active: true, startsAt: undefined, endsAt: undefined };
 
 const defaultPrizeWheelPrizes = [
   { id: "five_percent", label: "5% Off Next Purchase", chance: 48, type: "percent", value: 5 },
@@ -451,6 +451,12 @@ export default function Dashboard({ adminToken, onLogout }) {
     const inventoryIds = [...new Set(formData.getAll("inventoryIds").map(String))];
     const startsAt = form.startsAt ? new Date(form.startsAt).getTime() : undefined;
     const endsAt = form.endsAt ? new Date(form.endsAt).getTime() : undefined;
+    const offer = {
+      discountType: form.discountType,
+      value: numberFromForm(form.value),
+      bundleQuantity: form.discountType === "bundle" ? numberFromForm(form.bundleQuantity) : undefined,
+      qualifyingPrice: form.discountType === "bundle" && form.qualifyingPrice ? numberFromForm(form.qualifyingPrice) : undefined
+    };
 
     if (form.active === "on" && !inventoryIds.length) {
       setPromotionError("Select at least one eligible product before publishing, or uncheck Publish this promotion live to save a draft.");
@@ -462,13 +468,11 @@ export default function Dashboard({ adminToken, onLogout }) {
         adminToken,
         id: editingPromotion?._id,
         name: String(form.name || "").trim(),
-        headline: String(form.headline || "").trim(),
-        description: String(form.description || "").trim(),
+        // Preserve the current API contract without editable public-copy fields.
+        headline: promotionHeadline(offer),
+        description: promotionTerms(offer),
         inventoryIds,
-        discountType: form.discountType,
-        value: numberFromForm(form.value),
-        bundleQuantity: form.discountType === "bundle" ? numberFromForm(form.bundleQuantity) : undefined,
-        qualifyingPrice: form.discountType === "bundle" && form.qualifyingPrice ? numberFromForm(form.qualifyingPrice) : undefined,
+        ...offer,
         supportsBundles: true,
         active: form.active === "on",
         startsAt,
@@ -772,7 +776,7 @@ function PromotionTable({ promotions, search, onEdit, onToggle, onDelete }) {
   if (promotions === undefined) return <div className="state-card">Loading promotions...</div>;
   const query = search.trim().toLowerCase();
   const rows = query
-    ? promotions.filter(promotion => [promotion.name, promotion.headline, promotion.description, promotion.flowerName].join(" ").toLowerCase().includes(query))
+    ? promotions.filter(promotion => [promotion.name, promotionHeadline(promotion), promotion.flowerName].join(" ").toLowerCase().includes(query))
     : promotions;
   if (!rows.length) return <div className="state-card">No promotions match the current search.</div>;
 
@@ -791,7 +795,7 @@ function PromotionTable({ promotions, search, onEdit, onToggle, onDelete }) {
               : "No schedule";
             return (
               <tr key={promotion._id}>
-                <td data-label="Promotion"><strong>{promotion.headline}</strong><br /><span className="muted">{promotion.name}</span></td>
+                <td data-label="Promotion"><strong>{promotionHeadline(promotion)}</strong><br /><span className="muted">{promotion.name}</span></td>
                 <td data-label="Products">{promotion.flowerName}</td>
                 <td data-label="Discount">{discount}</td>
                 <td data-label="Status"><span className={`payment-status ${status.className}`}>{status.label}</span></td>

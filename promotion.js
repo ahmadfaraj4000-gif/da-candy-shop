@@ -1,5 +1,5 @@
 (async function () {
-  const { promotionLabel, promotionTerms } = await import("./promotion-pricing.js");
+  const { promotionHeadline, promotionBannerText, promotionTerms } = await import("./promotion-pricing.js?v=20261027-simple-promo-9");
   const convexBase = window.DCS_CONVEX_URL || "https://opulent-panda-156.convex.cloud";
   let promotion = null;
 
@@ -10,10 +10,6 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
-  }
-
-  function discountLabel(item) {
-    return promotionLabel(item);
   }
 
   async function convexQuery(path, args = {}) {
@@ -47,11 +43,7 @@
     banner.className = "live-promotion-banner";
     banner.setAttribute("aria-label", "Current promotion");
     banner.innerHTML = `
-      <div>
-        <span>Live promotion</span>
-        <strong>${escapeHtml(promotion.headline)}</strong>
-        <small>${escapeHtml(discountLabel(promotion))} · ${escapeHtml(promotionTerms(promotion))}</small>
-      </div>
+      <strong class="promotion-banner-text">${escapeHtml(promotionBannerText(promotion))}</strong>
       <button class="btn small" type="button">Shop this deal</button>
     `;
     banner.querySelector("button").addEventListener("click", focusPromotedFlower);
@@ -77,12 +69,8 @@
     popup.innerHTML = `
       <div class="promotion-popup-card">
         <button class="promotion-popup-close" type="button" aria-label="Close promotion">&times;</button>
-        <h2 id="promotionPopupTitle">${escapeHtml(promotion.headline)}</h2>
-        <p>${escapeHtml(promotion.description)}</p>
-        <div class="promotion-popup-offer">
-          <strong>${escapeHtml(discountLabel(promotion))}</strong>
-          <small>${escapeHtml(promotionTerms(promotion))}</small>
-        </div>
+        <h2 id="promotionPopupTitle">${escapeHtml(promotionHeadline(promotion))}</h2>
+        <p>${escapeHtml(promotionTerms(promotion))}. Discount applied at checkout.</p>
         <div class="promotion-popup-actions">
           <a class="btn primary" href="flower.html?promotion=${encodeURIComponent(promotion._id)}#flowerGrid">Shop promotion</a>
           <button class="btn ghost" type="button">Maybe later</button>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { promotionLabel, promotionTerms } from "../../../promotion-pricing.js";
+import { promotionBannerText } from "../../../promotion-pricing.js";
 
 function dateTimeInputValue(timestamp) {
   if (!timestamp) return "";
@@ -8,7 +8,6 @@ function dateTimeInputValue(timestamp) {
 }
 
 export default function PromotionForm({ promotion, inventory, onSubmit, error }) {
-  const [headline, setHeadline] = useState(promotion.headline ?? "");
   const [discountType, setDiscountType] = useState(promotion.discountType);
   const [value, setValue] = useState(promotion.value);
   const [bundleQuantity, setBundleQuantity] = useState(promotion.bundleQuantity ?? 2);
@@ -50,13 +49,10 @@ export default function PromotionForm({ promotion, inventory, onSubmit, error })
           </label>)}
         </div>
       </fieldset>
-      <label className="wide">Public Headline <input name="headline" value={headline} onChange={event => setHeadline(event.target.value)} maxLength={60} placeholder="Mix & match: 2 for $30" required /></label>
-      <label className="wide">Short Description <input name="description" defaultValue={promotion.description} maxLength={100} placeholder="Your favorite designs. One sweet deal." required /></label>
-      <p className="muted wide">Keep it brief: headline up to 60 characters, description up to 100. The description appears in the pop-up.</p>
       <div className="wide" role="status" aria-live="polite">
         <p className="muted">Banner preview</p>
-        <strong>{headline || "Your headline"}</strong>
-        <p className="muted">{promotionLabel(preview)} · {promotionTerms(preview)}</p>
+        <strong>{promotionBannerText(preview)}</strong>
+        <p className="muted">Public wording is generated from the offer settings above.</p>
       </div>
       <label>Starts <input name="startsAt" type="datetime-local" defaultValue={dateTimeInputValue(promotion.startsAt)} /></label>
       <label>Ends <input name="endsAt" type="datetime-local" defaultValue={dateTimeInputValue(promotion.endsAt)} /></label>

@@ -320,10 +320,7 @@ blockquote span { color: var(--muted); font-size: .8rem; }
   background: #f4f1e8;
   box-shadow: none;
 }
-.live-promotion-banner > div { overflow-wrap: anywhere; display: grid; gap: .08rem; }
-.live-promotion-banner span { font-size: .62rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
-.live-promotion-banner strong { font-size: clamp(.95rem,2.2vw,1.25rem); }
-.live-promotion-banner small { font-size: .72rem; font-weight: 750; }
+.live-promotion-banner .promotion-banner-text { font-size: clamp(.95rem,2.2vw,1.25rem); line-height: 1.4; white-space: nowrap; }
 .live-promotion-banner .btn { flex: 0 0 auto; color: #fff; border-color: rgba(0,0,0,.24); background: #111; }
 .live-promotion-banner .btn:hover { background: #242424; }
 
@@ -436,7 +433,8 @@ blockquote span { color: var(--muted); font-size: .8rem; }
   .link-landing-panel { padding: .5rem; }
   .qr-stripe-form { padding: 1rem; }
   .live-promotion-banner { align-items: center; gap: .65rem; padding: .7rem .8rem; }
-  .live-promotion-banner > div { flex: 1 1 auto; }
+  .live-promotion-banner { flex-wrap: wrap; gap: .5rem 1rem; }
+  .live-promotion-banner .promotion-banner-text { font-size: .95rem; }
   .live-promotion-banner .btn { padding-inline: .75rem; font-size: .8rem; }
   .promotion-popup-actions { grid-template-columns: 1fr; }
   .promotion-popup-offer { align-items: flex-start; flex-direction: column; }
