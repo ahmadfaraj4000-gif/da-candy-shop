@@ -494,15 +494,14 @@ blockquote span { color: var(--muted); font-size: .8rem; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
 .modern-payment-section { margin-bottom: 4rem; }
 
-/* One compact floating button, with no panel beneath it. */
-.has-floating-action { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+/* Mobile-only floating button, with no panel beneath it. */
 .floating-action {
   position: fixed;
   z-index: 80;
   left: 12px;
   right: 12px;
   bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   gap: .65rem;
@@ -516,6 +515,10 @@ blockquote span { color: var(--muted); font-size: .8rem; }
   font-size: 1rem;
   font-weight: 750;
   cursor: pointer;
+}
+@media (max-width: 920px) {
+  .has-floating-action { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  .floating-action { display: flex; }
 }
 .floating-action:hover { background: #b5f447; }
 .floating-action:focus-visible { outline-color: var(--text); }
