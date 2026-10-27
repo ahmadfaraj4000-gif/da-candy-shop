@@ -52,23 +52,34 @@
   document.body.appendChild(floatingAction);
 
   const mobile = window.matchMedia("(max-width: 920px)");
-  let scrollAnchor = Math.max(0, window.scrollY);
+  // Banner height changes can move scrollY through browser scroll anchoring.
+  // Measure relative to its height so that resizing is not mistaken for a gesture.
+  const bannerHeight = () => document.getElementById("livePromotionBanner")?.getBoundingClientRect().height || 0;
+  let scrollAnchor = Math.max(0, window.scrollY) - bannerHeight();
   let framePending = false;
+
+  function setCompact(compact) {
+    document.body.classList.toggle("scroll-controls-compact", compact);
+    floatingAction.classList.toggle("is-compact", mobile.matches && compact);
+  }
 
   function updateBarSize() {
     framePending = false;
     // Clamp elastic scrolling so a bounce at either edge cannot flip the bar.
     const limit = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
     const position = Math.min(limit, Math.max(0, window.scrollY));
-    if (!mobile.matches || position < 32) {
-      floatingAction.classList.remove("is-compact");
-      scrollAnchor = position;
+    const contentPosition = position - bannerHeight();
+    if (position < 32) {
+      setCompact(false);
+      scrollAnchor = contentPosition;
       return;
     }
-    const distance = position - scrollAnchor;
+    const distance = contentPosition - scrollAnchor;
     if (Math.abs(distance) < 12) return;
-    floatingAction.classList.toggle("is-compact", distance > 0);
-    scrollAnchor = position;
+    // Leave room for the banner to collapse without pulling the page back to the top.
+    if (distance > 0 && position < 96 && !document.body.classList.contains("scroll-controls-compact")) return;
+    setCompact(distance > 0);
+    scrollAnchor = contentPosition;
   }
 
   window.addEventListener("scroll", () => {
@@ -76,9 +87,12 @@
     framePending = true;
     window.requestAnimationFrame(updateBarSize);
   }, { passive: true });
-  mobile.addEventListener("change", updateBarSize);
+  mobile.addEventListener("change", () => {
+    floatingAction.classList.toggle("is-compact", mobile.matches && document.body.classList.contains("scroll-controls-compact"));
+  });
   window.addEventListener("pageshow", () => {
-    scrollAnchor = Math.max(0, window.scrollY);
-    floatingAction.classList.toggle("is-compact", mobile.matches && scrollAnchor > 64);
+    const position = Math.max(0, window.scrollY);
+    scrollAnchor = position - bannerHeight();
+    setCompact(position > 64);
   });
 })();
