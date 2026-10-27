@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Flower | Da Candy Shop</title>
-    <link rel="stylesheet" href="styles.css?v=20261019-pickup-size-1" />
+    <link rel="stylesheet" href="styles.css?v=20261027-floating-4" />
   </head>
   <body>
     <header class="site-header flower-header">
       <a class="brand" href="index.html"><img class="brand-logo" src="assets/logos/da-candy-shop-logo.webp" alt="Da Candy Shop" /></a>
       <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
-      <nav class="site-nav">
+      <nav class="site-nav" aria-label="Primary navigation">
         <a href="index.html">Home</a>
         <a href="flower.html">Flower</a>
         <a href="about.html">About</a>
@@ -25,7 +25,6 @@
     <main>
       <section class="section shop-layout flower-menu-shell">
         <div class="section-heading wide">
-          <p class="eyebrow">Live shelf</p>
           <h1>Find your flower.</h1>
           <p class="tagline">Browse what&rsquo;s available now, build your bag, and schedule a Hartford pickup.</p>
         </div>
@@ -71,7 +70,7 @@
         <div id="flowerGrid" class="product-grid strain-grid"></div>
       </section>
       <section id="checkout" class="section checkout-section modern-checkout">
-        <div class="section-heading"><p class="eyebrow">Checkout</p><h2>Finish your pickup.</h2><p>Tell us who&rsquo;s coming and when. Choose online payment or pay when you arrive.</p></div>
+        <div class="section-heading"><h2>Finish your pickup.</h2><p>Tell us who&rsquo;s coming and when. Choose online payment or pay when you arrive.</p></div>
         <form id="flowerCheckout" class="checkout-grid glass">
           <div class="checkout-panel customer-panel">
             <h3>Customer Information</h3>
@@ -123,10 +122,11 @@
       window.DCS_PROMO_SPIN_API_URL = "https://opulent-panda-156.convex.site/promo-spin";
       window.DCS_PROMO_SPIN_STATUS_API_URL = "https://opulent-panda-156.convex.site/promo-spin-status";
     </script>
-    <script src="nav.js"></script>
+    <script src="nav.js?v=20261027-floating-4"></script>
     <script src="age-gate.js"></script>
-    <script src="promotion.js?v=20261005-bundle-1"></script>
+    <script src="promotion.js?v=20261027-cafe-1"></script>
     <script src="flower-promo.js"></script>
+    <script src="cart-preview.js?v=20261027-floating-4"></script>
     <script type="module">
       import { attachCheckoutHours } from "./checkout-hours.js?v=daily-hours-20261019";
       import { calculatePromotionDiscount, isPromotionItemEligible, promotionLabel } from "./promotion-pricing.js";
@@ -546,7 +546,8 @@
         }
       });
       headerCart.addEventListener("click", () => {
-        document.getElementById("checkout").scrollIntoView({ behavior: "smooth" });
+        if (window.DCS_openCart) window.DCS_openCart();
+        else document.getElementById("checkout").scrollIntoView({ behavior: "smooth" });
       });
       orderPopupClose.addEventListener("click", closeOrderPopup);
       orderPopupDone.addEventListener("click", closeOrderPopup);

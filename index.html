@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Premium flower available for pickup at Da Candy Shop in Hartford, Connecticut." />
     <title>Da Candy Shop | Premium Flower in Hartford</title>
-    <link rel="stylesheet" href="styles.css?v=20261005-bundle-1" />
+    <link rel="stylesheet" href="styles.css?v=20261027-floating-4" />
   </head>
   <body>
     <header class="site-header">
@@ -25,25 +25,43 @@
     </header>
 
     <main>
-      <section class="hero modern-hero">
+      <section class="hero" aria-labelledby="hero-heading">
+        <div id="homeSlideshow" class="hero-spread" aria-hidden="true"></div>
         <div class="hero-copy">
-          <p class="eyebrow">Premium flower in Hartford</p>
-          <h1>Premium flower.<br /><em>Ready for pickup.</em></h1>
-          <p class="tagline">Browse the live menu and choose your pickup time.</p>
+          <h1 id="hero-heading">Premium flower.<br />Ready for pickup.</h1>
+          <p class="tagline">Browse the live menu.<br />Pick your favorites. We&rsquo;ll see you at the shop.</p>
           <div class="hero-actions">
-            <a class="btn primary" href="flower.html">Shop Flower <span aria-hidden="true">&rarr;</span></a>
-            <a class="btn ghost" href="contact.html">Hours &amp; Directions</a>
+            <a class="btn primary" href="flower.html">Shop Flower</a>
+            <a class="btn ghost" href="landing-page.html">In-Store Payment</a>
           </div>
+          <a class="hero-location" href="#opening-hours">1120 Albany Ave &middot; Hartford, CT</a>
         </div>
-        <div class="hero-visual">
-          <div id="homeSlideshow" class="hero-banner hero-slideshow" aria-label="Featured strain photos"></div>
+      </section>
+
+      <section class="hours-card" id="opening-hours" aria-labelledby="visit-heading">
+        <div class="hours-card-copy">
+          <h2 id="visit-heading">Find the shop.</h2>
+          <a class="hours-contact" href="https://maps.google.com/?q=1120+Albany+Ave+Hartford+CT+06112" target="_blank" rel="noopener noreferrer">1120 Albany Ave<br />Hartford, CT 06112</a>
+          <a class="hours-contact" href="mailto:orders@dacandyshop.com">orders@dacandyshop.com</a>
+          <a class="text-link" href="contact.html">Plan your visit</a>
         </div>
+        <table class="opening-hours">
+          <caption>Opening hours</caption>
+          <tbody>
+            <tr><th scope="row">Sunday</th><td>10 AM&ndash;9:30 PM</td></tr>
+            <tr><th scope="row">Monday</th><td>8 AM&ndash;9 PM</td></tr>
+            <tr><th scope="row">Tuesday</th><td>8 AM&ndash;9 PM</td></tr>
+            <tr><th scope="row">Wednesday</th><td>8 AM&ndash;9 PM</td></tr>
+            <tr><th scope="row">Thursday</th><td>8 AM&ndash;9 PM</td></tr>
+            <tr><th scope="row">Friday</th><td>8 AM&ndash;10 PM</td></tr>
+            <tr><th scope="row">Saturday</th><td>8 AM&ndash;10 PM</td></tr>
+          </tbody>
+        </table>
       </section>
 
       <section id="deals" class="section menu-preview-section">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Flower counter</p>
             <h2>Current favorites.</h2>
           </div>
           <a class="text-link" href="flower.html">View the full menu <span aria-hidden="true">&rarr;</span></a>
@@ -53,7 +71,6 @@
 
       <section class="section payment-section modern-payment-section">
         <div class="payment-copy">
-          <p class="eyebrow">Simple checkout</p>
           <h2>Pay your way.</h2>
           <p>Choose secure online checkout, pay at pickup, or use the counter payment page while you&rsquo;re in store.</p>
           <a class="text-link" href="landing-page.html">Open counter payment <span aria-hidden="true">&rarr;</span></a>
@@ -65,18 +82,6 @@
         </div>
       </section>
 
-      <section class="section contact-strip">
-        <div>
-          <p class="eyebrow">Visit us</p>
-          <h2>Find the shop.</h2>
-          <a class="btn ghost" href="https://maps.google.com/?q=1120+Albany+Ave+Hartford+CT+06112" target="_blank" rel="noopener noreferrer">Get Directions</a>
-        </div>
-        <div class="info-grid">
-          <p><span>Email</span><a href="mailto:orders@dacandyshop.com">orders@dacandyshop.com</a></p>
-          <p><span>Address</span><strong>1120 Albany Ave<br />Hartford, CT 06112</strong></p>
-          <p><span>Hours</span><strong>Mon&ndash;Thu: 8 AM&ndash;9 PM<br />Fri&ndash;Sat: 8 AM&ndash;10 PM<br />Sun: 10 AM&ndash;9:30 PM</strong></p>
-        </div>
-      </section>
     </main>
 
     <footer class="site-footer">
@@ -91,10 +96,10 @@
     <script>
       window.DCS_CONVEX_URL = "https://opulent-panda-156.convex.cloud";
     </script>
-    <script src="nav.js"></script>
+    <script src="nav.js?v=20261027-floating-4"></script>
     <script src="age-gate.js"></script>
-    <script src="promotion.js?v=20261005-bundle-1"></script>
-    <script src="slideshow.js"></script>
-    <script src="home-menu.js"></script>
+    <script src="promotion.js?v=20261027-cafe-1"></script>
+    <script src="slideshow.js?v=20261027-cafe-1"></script>
+    <script src="home-menu.js?v=20261027-mobile-3"></script>
   </body>
 </html>

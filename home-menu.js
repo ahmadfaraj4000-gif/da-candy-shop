@@ -60,9 +60,13 @@
   function renderSlideshow(rows) {
     if (!slideshow) return;
     const slides = rows.filter(item => item.image);
-    slideshow.innerHTML = slides.length
-      ? slides.map((item, index) => `<img class="${index === 0 ? "active" : ""}" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)} strain photo" ${index === 0 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} />`).join("")
-      : "";
+    // Keep the existing inventory source, distributing it over four image positions.
+    // Each position cycles through its own products without repeating an item.
+    const groups = Array.from({ length: Math.min(slides.length, 4) }, () => []);
+    slides.forEach((item, index) => groups[index % groups.length].push(item));
+    slideshow.innerHTML = groups.map(group => `<div class="hero-product">${group.map((item, index) =>
+      `<img class="${index === 0 ? "active" : ""}" src="${escapeHtml(item.image)}" alt="" ${index === 0 ? 'loading="eager"' : 'loading="lazy"'} decoding="async" />`
+    ).join("")}</div>`).join("");
 
     if (window.DCS_startSlideshow) window.DCS_startSlideshow(slideshow);
   }
@@ -75,7 +79,7 @@
           const startingPrice = configuredPrices.length ? Math.min(...configuredPrices) : item.price;
           return `<article class="product-card">
             <span class="badge">${escapeHtml(item.strainType || "Flower")}</span>
-            <div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)} strain" /></div>
+            <div class="product-art ${(item.strainType || "hybrid").toLowerCase()}"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)} strain" loading="lazy" decoding="async" /></div>
             <h3>${escapeHtml(item.name)}</h3>
             <p>${escapeHtml(item.description || "Fresh flower from the current shelf.")}</p>
             <div class="price-row"><strong>From ${money(startingPrice)}</strong><span>See all weights on menu</span></div>

@@ -77,7 +77,6 @@
     popup.innerHTML = `
       <div class="promotion-popup-card">
         <button class="promotion-popup-close" type="button" aria-label="Close promotion">&times;</button>
-        <p class="eyebrow">Now live</p>
         <h2 id="promotionPopupTitle">${escapeHtml(promotion.headline)}</h2>
         <p>${escapeHtml(promotion.description)}</p>
         <div class="promotion-popup-offer">
